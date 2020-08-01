@@ -1,5 +1,16 @@
 svg {
   border: 1px solid black;
-  width: 50%;
-  height: auto;
+}
+line {
+  stroke: black;
+}
+circle {
+  stroke: white;
+  fill: black;
+  r: 1%;
+  stroke-width: 0.5%;
+}
+#center {
+  fill: red;
+  r: 0.75%;
 }

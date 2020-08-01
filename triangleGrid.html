@@ -1,13 +1,18 @@
 <!doctype html>
 
 <html>
-  <head>
-    <title>Infinite Grid Trick</title>
+  <head xmlns="http://www.w3.org/1999/xhtml">
+    <title>Triangle Grid</title>
     <link rel="stylesheet" href="triangleGrid.css">
   </head>
   <body>
     <h1>Header</h1>
-    <svg viewBox="0 0 100 100"></svg>
+    <svg id="lonelySVG" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300" height="50%" width="50%"></svg>
     <script src="triangleGrid.js"></script>
+    <script>
+      svg = document.getElementById("lonelySVG");
+      grid = new triGrid.triangleGrid(svg);
+      grid.initialize();
+    </script>
   </body>
 </html>
