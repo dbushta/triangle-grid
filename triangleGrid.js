@@ -21,8 +21,10 @@
       this.ns = svg.getAttribute("xmlns");
       this.grid = svg.appendChild(document.createElementNS(this.ns, "g"));
       this.points = svg.appendChild(document.createElementNS(this.ns, "g"));
-      this.xLength = 10;
-      this.viewBox = null
+      this.xLength = 5;
+      this.viewBox = null;
+      this.scale = 100;
+      this.maxZoom = null;
     }
 
     /*Function initialize
@@ -41,14 +43,19 @@
       }
       bBox = bBox.split(' ');
       //take the substrings and create numbers using unary +
-      this.viewBox = {x: +bBox[0], y: +bBox[1], w: +bBox[2], h: +bBox[3]};
+      this.viewBox = {x: -bBox[2] / 2, y: -bBox[3] / 2, w: +bBox[2], h: +bBox[3]};
+      this.maxZoom = {w: +bBox[2], h: +bBox[3]};
       //Add origin circle; will be above other elements
       let circle = document.createElementNS(this.ns, "circle");
       circle.setAttributeNS(null, "id", "center");
+      circle.setAttributeNS(null, "r", '2');
+      circle.setAttributeNS(null, "stroke-width", '1');
       this.svg.appendChild(circle);
       //Call preparation functions
       this.drawLines();
       this.setDrag();
+      //this.setZoom(50);
+      this.updateSVG();
     }
 
     /*Method drawLines
@@ -59,7 +66,6 @@
     drawLines() {
       //Triangle Height
       const h = this.xLength * Math.sqrt(3) / 2;
-
       //How many whole y pattern lengths fit on grid
       const svgHeight = h * (intDivide(this.viewBox.h, h) + 3);
       //Find half of the whole x patterns across + 1(for margin) and multiply by 2 to guarantee even
@@ -91,6 +97,7 @@
         line.setAttributeNS(null, "x2", pair.p2.x);
         line.setAttributeNS(null, "y1", pair.p1.y);
         line.setAttributeNS(null, "y2", pair.p2.y);
+        line.setAttributeNS(null, "stroke-width", '0.5');
         this.grid.appendChild(line);
       }
     }
@@ -129,12 +136,27 @@
         }
       }
     }
-    
-    /*Method SetZoom
-     *
-     */
-    setZoom() {
 
+    /*Method SetZoom
+     *Parameter: Percent(number{0:100})
+     *Description: adjust position and scale of screen to zoom between [x,y]Length to maxZoom
+     *Return: null
+     */
+    setZoom(percent) {
+      this.scale = percent / 100;
+      //Bound the percent
+      this.scale = (this.scale > 1) ? 1 : this.scale;
+      this.scale = (this.scale < 0) ? 0 : this.scale;
+      //Create the new scale width and height
+      const newXZoom = this.xLength + (this.maxZoom.w - this.xLength) * this.scale;
+      const yLength = this.xLength * Math.sqrt(3) / 2;
+      const newYZoom = yLength + (this.maxZoom.h - yLength) * this.scale;
+      //Set values of viewBox with new scale width and heights
+      this.viewBox.x += (this.viewBox.w - newXZoom) / 2;
+      this.viewBox.y += (this.viewBox.h - newYZoom) / 2;
+      this.viewBox.w = newXZoom;
+      this.viewBox.h = newYZoom;
+      this.updateSVG();
     }
 
     /*Method updateSVG
@@ -146,7 +168,7 @@
       this.svg.setAttributeNS(null, "viewBox",
         `${this.viewBox.x} ${this.viewBox.y} ${this.viewBox.w} ${this.viewBox.h}`);
       //Two triangle heights is one y Pattern Length
-      let yLength = this.xLength * Math.sqrt(3);
+      const yLength = this.xLength * Math.sqrt(3);
       //Find the nearest whole x and y pattern length and move grid to it.
       this.grid.setAttribute("transform", `translate(
         ${this.xLength * intDivide(this.viewBox.x, this.xLength)},
