@@ -23,7 +23,6 @@
       this.points = svg.appendChild(document.createElementNS(this.ns, "g"));
       this.xLength = 5;
       this.viewBox = null;
-      this.scale = 100;
       this.maxZoom = null;
     }
 
@@ -36,15 +35,16 @@
       //Check svg for viewBox
       var bBox = this.svg.getAttributeNS(null, "viewBox");
       if(!bBox) {
-        //No viewBox, so create one that is one to one at origin using a domRect.
+        //No viewBox, so create one that is one to one at origin.
         const dim = this.svg.getBoundingClientRect();
         bBox = `0 0 ${dim.width} ${dim.height}`;
         this.svg.setAttributeNS(null, "viewBox", bBox);
       }
-      bBox = bBox.split(' ');
       //take the substrings and create numbers using unary +
-      this.viewBox = {x: -bBox[2] / 2, y: -bBox[3] / 2, w: +bBox[2], h: +bBox[3]};
-      this.maxZoom = {w: +bBox[2], h: +bBox[3]};
+      this.viewBox = this.svg.viewBox.baseVal;
+      this.viewBox.x -= this.viewBox.width / 2;
+      this.viewBox.y -= this.viewBox.height / 2;
+      this.maxZoom = {w: this.viewBox.width, h: this.viewBox.height};
       //Add origin circle; will be above other elements
       let circle = document.createElementNS(this.ns, "circle");
       circle.setAttributeNS(null, "id", "center");
@@ -67,9 +67,9 @@
       //Triangle Height
       const h = this.xLength * Math.sqrt(3) / 2;
       //How many whole y pattern lengths fit on grid
-      const svgHeight = h * (intDivide(this.viewBox.h, h) + 3);
+      const svgHeight = h * (intDivide(this.viewBox.height, h) + 3);
       //Find half of the whole x patterns across + 1(for margin) and multiply by 2 to guarantee even
-      const svgWidth = 2 * this.xLength * (intDivide(this.viewBox.w, 2 * this.xLength) + 1);
+      const svgWidth = 2 * this.xLength * (intDivide(this.viewBox.width, 2 * this.xLength) + 1);
 
       var pointPairs = [];
       //Create diagonal point pairs starting at half svgWidth
@@ -110,30 +110,35 @@
     setDrag() {
       //Use closure to hold variables between eventListeners
       const that = this;
+      var svgPt = this.svg.createSVGPoint();
       let dragging = false;
-      let hold = {x:0, y:0};
+      let origin = {x:0, y:0};
+
       this.svg.addEventListener("mousedown", startDrag);
       this.svg.addEventListener("mousemove", midDrag);
       this.svg.addEventListener("mouseup", endDrag);
       this.svg.addEventListener("mouseleave", endDrag);
 
+      function getSVGPoint(point) {
+        svgPt.x = point.clientX;
+        svgPt.y = point.clientY;
+        return svgPt.matrixTransform(that.svg.getScreenCTM().inverse());
+      }
       function startDrag(e) {
         dragging = true;
-        hold = {x:e.clientX, y:e.clientY};
+        e.preventDefault();
+        origin = getSVGPoint(e);
       }
       function midDrag(e) {
         if(dragging) {
-          that.viewBox.x -= e.clientX - hold.x;
-          that.viewBox.y -= e.clientY - hold.y;
-          hold = {x:e.clientX, y:e.clientY};
+          let now = getSVGPoint(e);
+          that.viewBox.x -= (now.x - origin.x);
+          that.viewBox.y -= (now.y - origin.y);
           that.updateSVG();
         }
       }
       function endDrag(e) {
-        if(dragging) {
-          midDrag(e);
-          dragging = false;
-        }
+        dragging = false;
       }
     }
 
@@ -143,19 +148,19 @@
      *Return: null
      */
     setZoom(percent) {
-      this.scale = percent / 100;
+      let scale = percent / 100;
       //Bound the percent
-      this.scale = (this.scale > 1) ? 1 : this.scale;
-      this.scale = (this.scale < 0) ? 0 : this.scale;
+      scale = (scale > 1) ? 1 : scale;
+      scale = (scale < 0) ? 0 : scale;
       //Create the new scale width and height
-      const newXZoom = this.xLength + (this.maxZoom.w - this.xLength) * this.scale;
+      const newXZoom = this.xLength + (this.maxZoom.w - this.xLength) * scale;
       const yLength = this.xLength * Math.sqrt(3) / 2;
-      const newYZoom = yLength + (this.maxZoom.h - yLength) * this.scale;
+      const newYZoom = yLength + (this.maxZoom.h - yLength) * scale;
       //Set values of viewBox with new scale width and heights
-      this.viewBox.x += (this.viewBox.w - newXZoom) / 2;
-      this.viewBox.y += (this.viewBox.h - newYZoom) / 2;
-      this.viewBox.w = newXZoom;
-      this.viewBox.h = newYZoom;
+      this.viewBox.x += (this.viewBox.width - newXZoom) / 2;
+      this.viewBox.y += (this.viewBox.height - newYZoom) / 2;
+      this.viewBox.width = newXZoom;
+      this.viewBox.height = newYZoom;
       this.updateSVG();
     }
 
@@ -165,8 +170,6 @@
      *Return: null
      */
     updateSVG() {
-      this.svg.setAttributeNS(null, "viewBox",
-        `${this.viewBox.x} ${this.viewBox.y} ${this.viewBox.w} ${this.viewBox.h}`);
       //Two triangle heights is one y Pattern Length
       const yLength = this.xLength * Math.sqrt(3);
       //Find the nearest whole x and y pattern length and move grid to it.

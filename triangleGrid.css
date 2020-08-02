@@ -1,5 +1,6 @@
 svg {
-  border: 1px solid black;
+  outline: 1px solid black;
+  cursor: move;
 }
 line {
   stroke: black;
