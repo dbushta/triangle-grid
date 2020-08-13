@@ -10,23 +10,28 @@ circle {
   stroke: white;
   fill: black;
 }
-#center {
+.center {
   fill: red;
   stroke-width: 1;
 }
-#Menu {
+.menu {
   cursor: context-menu;
 }
-#burgerOuter {
+.menuButtonOuter {
   fill: #f0f8ffa0;
   height: 10%;
   rx: 2%;
   width: 15%;
 }
-#burgerInner {
+.menuScreenOuter {
+  height: 90%;
+  width: 40%;
+}
+.menuText {
   dominant-baseline: middle;
   fill: #ffffff;
   font-family: "Arial Black", Gadget, sans-serif;
+  pointer-events: none;
   text-anchor: middle;
   -moz-user-select: none;
   -ms-user-select: none;

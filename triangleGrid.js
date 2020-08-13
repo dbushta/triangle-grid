@@ -26,7 +26,7 @@
       this.yLength = Math.sqrt(3) * this.xLength / 2;
       this.viewBox = null;
       this.maxZoom = null;
-      /*Modes:{0: menu, 1: drag, 2: zoom, 3: place, 4: delete}*/
+      /*Modes:{0: menu, 1: drag, 2: zoom, 3: add, 4: remove}*/
       this.mode = 1;
     }
 
@@ -51,7 +51,7 @@
       this.maxZoom = {w: this.viewBox.width, h: this.viewBox.height};
       //Add origin circle; will be above other elements
       let circle = document.createElementNS(this.ns, "circle");
-      circle.setAttributeNS(null, "id", "center");
+      circle.setAttributeNS(null, "class", "center");
       circle.setAttributeNS(null, "r", '2');
       this.svg.appendChild(circle);
       //Call preparation functions
@@ -69,7 +69,7 @@
      *Return: null
      */
     drawLines() {
-      this.grid.setAttributeNS(null, "id", "Grid");
+      this.grid.setAttributeNS(null, "class", "Grid");
       //How many whole y pattern lengths fit on grid
       const svgHeight = this.yLength * (intDivide(this.viewBox.height, this.yLength) + 3);
       //Find half of the whole x patterns across + 1(for guaranteed margin)
@@ -114,38 +114,48 @@
       const self = this;
       //group added here, so it is above everything else
       this.menu = svg.appendChild(document.createElementNS(this.ns, "g"));
-      this.menu.setAttributeNS(null, "id", "Menu");
-
-      let burgerButton = this.menu.appendChild(document.createElementNS(this.ns, "g"));
-      burgerButton.setAttributeNS(null, "id", "burgerButton");
-
-      let rect = document.createElementNS(this.ns, "rect");
-      rect.setAttributeNS(null, "id", "burgerOuter");
-      burgerButton.appendChild(rect);
-
-      let text = document.createElementNS(this.ns, "text");
-      text.setAttributeNS(null, "id", "burgerInner");
-      text.setAttributeNS(null, "x", "7.5%");
-      text.setAttributeNS(null, "y", "5%");
-
-      let textNode = document.createTextNode("MENU");
-
-      text.appendChild(textNode);
-      burgerButton.appendChild(text);
-
-      burgerButton.addEventListener("mousedown", openMenu);
-
-      function openMenu(event) {
-        if(!self.mode) return null;
-        self.mode = 0;
-        console.log("open menu");
+      this.menu.setAttributeNS(null, "class", "menu");
+      //Menu Button appearance
+      let menuButton = this.menu.appendChild(document.createElementNS(this.ns, "g"));
+      menuButton.setAttributeNS(null, "class", "menuButton");
+      let menuBack = document.createElementNS(this.ns, "rect");
+      menuBack.setAttributeNS(null, "class", "menuButtonOuter");
+      let menuButtonText = document.createElementNS(this.ns, "text");
+      menuButtonText.setAttributeNS(null, "class", "menuText");
+      menuButtonText.setAttributeNS(null, "x", "7.5%");
+      menuButtonText.setAttributeNS(null, "y", "5%");
+      menuButtonText.appendChild(document.createTextNode("MENU"));
+      menuButton.appendChild(menuBack);
+      menuButton.appendChild(menuButtonText);
+      //Inner button appearance
+      let options = ["DRAG", "ZOOM", "ADD", "REMOVE"];
+      for(let i = 0; i < options.length; i++) {
+        let menuOption = menuButton.cloneNode(true);
+        menuOption.childNodes[0].setAttributeNS(null, "x", "12.5%");
+        menuOption.childNodes[0].setAttributeNS(null, "y", `${10 + 20 * i}%`);
+        menuOption.childNodes[0].classList.toggle("controlMode");
+        menuOption.childNodes[0].setAttributeNS("null", "data-number", `${i + 1}`);
+        menuOption.childNodes[1].setAttributeNS(null, "x", "20%");
+        menuOption.childNodes[1].setAttributeNS(null, "y", `${15 + 20 * i}%`);
+        menuOption.childNodes[1].removeChild(menuOption.childNodes[1].childNodes[0]);
+        menuOption.childNodes[1].appendChild(document.createTextNode(options[i]));
+        this.menu.appendChild(menuOption);
       }
 
-      function closeMenu(event) {
-        if(!self.mode) return null;
-        console.log("close menu");
-      }
+      let previousMode = 0;
+      this.menu.addEventListener("mousedown", menuControl);
 
+      function menuControl(event) {
+        if(self.mode) {
+          previousMode = self.mode;
+          self.mode = 0;
+        } else {
+          self.mode = event.target.classList.contains("controlMode") ?
+            +event.target.dataset.number : previousMode;
+        }
+        menuBack.classList.toggle("menuScreenOuter");
+        self.updateSVG();
+      }
     }
 
     /*Method setPoints
@@ -157,16 +167,16 @@
       const self = this;
       this.points.setAttributeNS(null, "id", "Points");
 
-      this.svg.addEventListener("mousedown", createPoint);
-      this.svg.addEventListener("mousedown", removePoint);
+      this.svg.addEventListener("mousedown", addPoints);
+      this.svg.addEventListener("mousedown", removePoints);
 
-      function createPoint(event) {
+      function addPoints(event) {
         if(self.mode != 3) return null;
-        console.log("add point");
+        console.log("ADD");
       }
-      function removePoint(event) {
+      function removePoints(event) {
         if(self.mode != 4) return null;
-        console.log("remove point");
+        console.log("REMOVE");
       }
     }
 
@@ -194,6 +204,7 @@
       }
       function startDrag(event) {
         if(self.mode != 1) return null;
+        console.log("DRAG");
         dragging = true;
         event.preventDefault();
         origin = getSVGPoint(event);
@@ -222,7 +233,7 @@
 
       function zoom(event) {
         if(self.mode != 2) return null;
-        console.log("scroll");
+        console.log("ZOOM");
       }
       /*let scale = percent / 100;
       //Bound the percent
@@ -253,8 +264,8 @@
       )`);
       //Keep the burger menu at bottom center
       this.menu.setAttribute("transform", `translate(
-        ${this.viewBox.x + this.viewBox.width * 0.425},
-        ${this.viewBox.y + this.viewBox.height * 0.90}
+        ${this.viewBox.x + this.viewBox.width * (this.mode ? 0.425 : 0.3)},
+        ${this.viewBox.y + this.viewBox.height * (this.mode ? 0.9 : 0.1)}
       )`);
     }
   }
