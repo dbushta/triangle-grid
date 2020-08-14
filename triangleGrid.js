@@ -22,7 +22,9 @@
       this.grid = svg.appendChild(document.createElementNS(this.ns, "g"));
       this.points = svg.appendChild(document.createElementNS(this.ns, "g"));
       this.menu =  null;
+      /*Length of one triangle of the grid*/
       this.xLength = 5;
+      /*Height of one triangle*/
       this.yLength = Math.sqrt(3) * this.xLength / 2;
       this.viewBox = null;
       this.maxZoom = null;
@@ -70,31 +72,39 @@
      */
     drawLines() {
       this.grid.setAttributeNS(null, "class", "Grid");
-      //How many whole y pattern lengths fit on grid
-      const svgHeight = this.yLength * (intDivide(this.viewBox.height, this.yLength) + 3);
-      //Find half of the whole x patterns across + 1(for guaranteed margin)
-      const svgWidthHalf = this.xLength * (intDivide(this.viewBox.width, 2 * this.xLength) + 2);
-
+      /*length equation reasoning:
+        use the longer side of the svg's viewBox, and evenly divide by 2 yLengths/
+        intDivide for integer to guarantee diagonals intersect cleanly at (0, 0)
+        then multiply by 2 to guarantee length is an even number.
+        Then by dividing by yLength(< xLength) and multiplying by xLength
+        there will be extra grid space for the infinite illusion when dragging.
+       */
+      const length = intDivide(
+        (this.viewBox.height > this.viewBox.width ? this.viewBox.height : this.viewBox.width),
+        2 * this.yLength) * 2 * this.xLength;
       var pointPairs = [];
-      //Create diagonal point pairs starting at half svgWidth
-      for(let i = -svgWidthHalf; i <= 3 * svgWidthHalf; i += this.xLength) {
+      /*Create diagonal point pairs starting at half a length(which is even) to the left.
+        Length is the height of a right triangle, which is sqrt(3) times the base.
+        Displace the second point by the triangle base, guaranteeing proper angle.
+       */
+      for(let i = -length / 2; i <= 3 * length / 2; i += this.xLength) {
         pointPairs.push({
           p1: {x: i, y: 0},
-          p2: {x: i + svgHeight / Math.sqrt(3), y: svgHeight}
+          p2: {x: i + length / Math.sqrt(3), y: length}
         });
         pointPairs.push({
           p1: {x: i, y: 0},
-          p2: {x: i - svgHeight / Math.sqrt(3), y: svgHeight}
+          p2: {x: i - length / Math.sqrt(3), y: length}
         });
       }
-      //Create horizontal point pairs
-      for(let i = 0; i <= svgHeight; i += this.yLength) {
+      //Create horizontal point pairs at yLength apart from each consecutive pair
+      for(let i = 0; i <= length; i += this.yLength) {
         pointPairs.push({
           p1: {x: 0, y: i},
-          p2: {x: 2 * svgWidthHalf, y: i}
+          p2: {x: length, y: i}
         });
       }
-      //Take create point pairs to make lines
+      //Take created point pairs to make lines
       for(const pair of pointPairs) {
         let line = document.createElementNS(this.ns, "line");
         line.setAttributeNS(null, "x1", pair.p1.x);
@@ -127,7 +137,7 @@
       menuButtonText.appendChild(document.createTextNode("MENU"));
       menuButton.appendChild(menuBack);
       menuButton.appendChild(menuButtonText);
-      //Inner button appearance
+      //Inner button appearance, copy menu button and adjust values
       let options = ["DRAG", "ZOOM", "ADD", "REMOVE"];
       for(let i = 0; i < options.length; i++) {
         let menuOption = menuButton.cloneNode(true);
@@ -137,8 +147,7 @@
         menuOption.childNodes[0].setAttributeNS("null", "data-number", `${i + 1}`);
         menuOption.childNodes[1].setAttributeNS(null, "x", "20%");
         menuOption.childNodes[1].setAttributeNS(null, "y", `${15 + 20 * i}%`);
-        menuOption.childNodes[1].removeChild(menuOption.childNodes[1].childNodes[0]);
-        menuOption.childNodes[1].appendChild(document.createTextNode(options[i]));
+        menuOption.childNodes[1].childNodes[0].nodeValue = options[i];
         this.menu.appendChild(menuOption);
       }
 
@@ -146,6 +155,7 @@
       this.menu.addEventListener("mousedown", menuControl);
 
       function menuControl(event) {
+        event.stopPropagation();
         if(self.mode) {
           previousMode = self.mode;
           self.mode = 0;
@@ -155,28 +165,6 @@
         }
         menuBack.classList.toggle("menuScreenOuter");
         self.updateSVG();
-      }
-    }
-
-    /*Method setPoints
-     *Parameters: null
-     *Description: add and remember points on svg
-     *Return: null
-     */
-    setPoints() {
-      const self = this;
-      this.points.setAttributeNS(null, "id", "Points");
-
-      this.svg.addEventListener("mousedown", addPoints);
-      this.svg.addEventListener("mousedown", removePoints);
-
-      function addPoints(event) {
-        if(self.mode != 3) return null;
-        console.log("ADD");
-      }
-      function removePoints(event) {
-        if(self.mode != 4) return null;
-        console.log("REMOVE");
       }
     }
 
@@ -196,7 +184,7 @@
       this.svg.addEventListener("mousemove", midDrag);
       this.svg.addEventListener("mouseup", endDrag);
       this.svg.addEventListener("mouseleave", endDrag);
-
+      //convert viewPort coordinates to viewBox coordinates
       function getSVGPoint(event) {
         svgPt.x = event.clientX;
         svgPt.y = event.clientY;
@@ -204,9 +192,9 @@
       }
       function startDrag(event) {
         if(self.mode != 1) return null;
+        event.preventDefault();
         console.log("DRAG");
         dragging = true;
-        event.preventDefault();
         origin = getSVGPoint(event);
       }
       function midDrag(event) {
@@ -250,6 +238,28 @@
       this.updateSVG();*/
     }
 
+    /*Method setPoints
+     *Parameters: null
+     *Description: add and remember points on svg
+     *Return: null
+     */
+    setPoints() {
+      const self = this;
+      this.points.setAttributeNS(null, "id", "Points");
+
+      this.svg.addEventListener("mousedown", addPoints);
+      this.svg.addEventListener("mousedown", removePoints);
+
+      function addPoints(event) {
+        if(self.mode != 3) return null;
+        console.log("ADD");
+      }
+      function removePoints(event) {
+        if(self.mode != 4) return null;
+        console.log("REMOVE");
+      }
+    }
+
     /*Method updateSVG
      *Parameters: null
      *Description: update state of svg viewBox, and reposition grid
@@ -262,7 +272,7 @@
         ${this.xLength * intDivide(this.viewBox.x, this.xLength)},
         ${2 * this.yLength * intDivide(this.viewBox.y, 2 * this.yLength)}
       )`);
-      //Keep the burger menu at bottom center
+      //Keep the menu button at bottom center
       this.menu.setAttribute("transform", `translate(
         ${this.viewBox.x + this.viewBox.width * (this.mode ? 0.425 : 0.3)},
         ${this.viewBox.y + this.viewBox.height * (this.mode ? 0.9 : 0.1)}
