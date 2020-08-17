@@ -26,7 +26,8 @@
       this.xLength = 5;
       /*Height of one triangle*/
       this.yLength = Math.sqrt(3) * this.xLength / 2;
-      this.viewBox = null;
+      this.viewBox = this.svg.viewBox.baseVal;
+      /*Used for zoom functions*/
       this.maxZoom = null;
       /*Modes:{0: menu, 1: drag, 2: zoom, 3: add, 4: remove}*/
       this.mode = 1;
@@ -38,24 +39,22 @@
      *Return: null
      */
     initialize() {
-      //Check svg for viewBox
-      var bBox = this.svg.getAttributeNS(null, "viewBox");
-      if(!bBox) {
-        //No viewBox, so create one that is one to one at origin.
-        const dim = this.svg.getBoundingClientRect();
-        bBox = `0 0 ${dim.width} ${dim.height}`;
-        this.svg.setAttributeNS(null, "viewBox", bBox);
-      }
-      this.viewBox = this.svg.viewBox.baseVal;
-      this.viewBox.x -= this.viewBox.width / 2;
-      this.viewBox.y -= this.viewBox.height / 2;
-      //Remember for zooming
-      this.maxZoom = {w: this.viewBox.width, h: this.viewBox.height};
-      //Add origin circle; will be above other elements
+      //Add start circle; will be above other elements
       let circle = document.createElementNS(this.ns, "circle");
       circle.setAttributeNS(null, "class", "center");
       circle.setAttributeNS(null, "r", '2');
       this.svg.appendChild(circle);
+      /*Set viewBox to svg boundingClientRect so dimensions match,
+        and preserveAspectRatio doesn't cause as many problems.
+       */
+      const dim = this.svg.getBoundingClientRect();
+      const bBox = `0 0 ${dim.width} ${dim.height}`;
+      this.svg.setAttributeNS(null, "viewBox", bBox);
+      //Center the grid
+      this.viewBox.x -= this.viewBox.width / 2;
+      this.viewBox.y -= this.viewBox.height / 2;
+      //Remember for zooming out to not go further than this
+      this.maxZoom = {w: this.viewBox.width, h: this.viewBox.height};
       //Call preparation functions
       this.drawLines();
       this.setMenu();
@@ -73,7 +72,7 @@
     drawLines() {
       this.grid.setAttributeNS(null, "class", "Grid");
       /*length equation reasoning:
-        use the longer side of the svg's viewBox, and evenly divide by 2 yLengths/
+        use the longer side of the svg's viewBox, and evenly divide by 2 yLengths
         intDivide for integer to guarantee diagonals intersect cleanly at (0, 0)
         then multiply by 2 to guarantee length is an even number.
         Then by dividing by yLength(< xLength) and multiplying by xLength
@@ -87,7 +86,7 @@
         Length is the height of a right triangle, which is sqrt(3) times the base.
         Displace the second point by the triangle base, guaranteeing proper angle.
        */
-      for(let i = -length / 2; i <= 3 * length / 2; i += this.xLength) {
+      for(let i = -length / 2, iLen = 3 * length / 2; i <= iLen; i += this.xLength) {
         pointPairs.push({
           p1: {x: i, y: 0},
           p2: {x: i + length / Math.sqrt(3), y: length}
@@ -128,18 +127,18 @@
       //Menu Button appearance
       let menuButton = this.menu.appendChild(document.createElementNS(this.ns, "g"));
       menuButton.setAttributeNS(null, "class", "menuButton");
-      let menuBack = document.createElementNS(this.ns, "rect");
-      menuBack.setAttributeNS(null, "class", "menuButtonOuter");
+      let menuButtonRect = document.createElementNS(this.ns, "rect");
+      menuButtonRect.setAttributeNS(null, "class", "menuButtonRect");
       let menuButtonText = document.createElementNS(this.ns, "text");
       menuButtonText.setAttributeNS(null, "class", "menuText");
       menuButtonText.setAttributeNS(null, "x", "7.5%");
       menuButtonText.setAttributeNS(null, "y", "5%");
       menuButtonText.appendChild(document.createTextNode("MENU"));
-      menuButton.appendChild(menuBack);
+      menuButton.appendChild(menuButtonRect);
       menuButton.appendChild(menuButtonText);
       //Inner button appearance, copy menu button and adjust values
       let options = ["DRAG", "ZOOM", "ADD", "REMOVE"];
-      for(let i = 0; i < options.length; i++) {
+      for(let i = 0, iLen = options.length; i < iLen; ++i) {
         let menuOption = menuButton.cloneNode(true);
         menuOption.childNodes[0].setAttributeNS(null, "x", "12.5%");
         menuOption.childNodes[0].setAttributeNS(null, "y", `${10 + 20 * i}%`);
@@ -155,7 +154,9 @@
       this.menu.addEventListener("mousedown", menuControl);
 
       function menuControl(event) {
+        //Prevent behavior of the menuButton from setting mode to 0
         event.stopPropagation();
+        //If going into menu, hold mode, else what mode was clicked on?
         if(self.mode) {
           previousMode = self.mode;
           self.mode = 0;
@@ -163,7 +164,8 @@
           self.mode = event.target.classList.contains("controlMode") ?
             +event.target.dataset.number : previousMode;
         }
-        menuBack.classList.toggle("menuScreenOuter");
+        //toggle the button to change appearance.
+        menuButtonRect.classList.toggle("menuButtonExpanded");
         self.updateSVG();
       }
     }
@@ -178,7 +180,7 @@
       const self = this;
       var svgPt = this.svg.createSVGPoint();
       let dragging = false;
-      let origin = {x:0, y:0};
+      let start = {x:0, y:0};
 
       this.svg.addEventListener("mousedown", startDrag);
       this.svg.addEventListener("mousemove", midDrag);
@@ -192,16 +194,16 @@
       }
       function startDrag(event) {
         if(self.mode != 1) return null;
+        //Prevent accidental highlighting
         event.preventDefault();
-        console.log("DRAG");
         dragging = true;
-        origin = getSVGPoint(event);
+        start = getSVGPoint(event);
       }
       function midDrag(event) {
         if(dragging) {
           let now = getSVGPoint(event);
-          self.viewBox.x -= (now.x - origin.x);
-          self.viewBox.y -= (now.y - origin.y);
+          self.viewBox.x -= (now.x - start.x);
+          self.viewBox.y -= (now.y - start.y);
           self.updateSVG();
         }
       }
@@ -217,25 +219,40 @@
      */
     setZoom() {
       const self = this;
-      this.svg.addEventListener("mousedown", zoom);
+      let zooming = false;
+      let start = {x:0, y:0};
 
-      function zoom(event) {
-        if(self.mode != 2) return null;
-        console.log("ZOOM");
+      this.svg.addEventListener("mousedown", startZoom);
+      this.svg.addEventListener("mousemove", midZoom);
+      this.svg.addEventListener("mouseup", endZoom);
+      this.svg.addEventListener("mouseleave", endZoom);
+
+      function getDistance(event) {
+        return Math.sqrt(Math.pow(event.clientX - self.maxZoom.w / 2, 2),
+          Math.pow(event.clientY - self.maxZoom.w / 2, 2));
       }
-      /*let scale = percent / 100;
-      //Bound the percent
-      scale = (scale > 1) ? 1 : scale;
-      scale = (scale < 0) ? 0 : scale;
-      //Create the new scale width and height
-      const newXZoom = this.xLength + (this.maxZoom.w - this.xLength) * scale;
-      const newYZoom = this.yLength + (this.maxZoom.h - this.yLength) * scale;
-      //Set values of viewBox with new scale width and heights
-      this.viewBox.x += (this.viewBox.width - newXZoom) / 2;
-      this.viewBox.y += (this.viewBox.height - newYZoom) / 2;
-      this.viewBox.width = newXZoom;
-      this.viewBox.height = newYZoom;
-      this.updateSVG();*/
+      function startZoom(event) {
+        if(self.mode != 2) return null;
+        //Prevent accidental highlighting
+        event.preventDefault();
+        zooming = true;
+        start = getDistance(event);
+      }
+      function midZoom(event) {
+        if(zooming) {
+          let now = getDistance(event);
+          self.viewBox.x += (now - start) / 4;
+          self.viewBox.y += Math.sqrt(3) * (now - start) / 4;
+          self.viewBox.width -= (now - start) / 2;
+          self.viewBox.height -= Math.sqrt(3) * (now - start) / 2;
+          start = now;
+          console.log(self.viewBox);
+          self.updateSVG();
+        }
+      }
+      function endZoom(event) {
+        zooming = false;
+      }
     }
 
     /*Method setPoints
