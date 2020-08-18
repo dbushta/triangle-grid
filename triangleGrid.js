@@ -17,10 +17,11 @@
    */
   class triangleGrid {
     constructor(svg) {
+      if(svg.tagName.toLowerCase() != "svg") throw "triangleGrid constructor failed, no svg given";
       this.svg = svg;
-      this.ns = svg.getAttribute("xmlns");
-      this.grid = svg.appendChild(document.createElementNS(this.ns, "g"));
-      this.points = svg.appendChild(document.createElementNS(this.ns, "g"));
+      this.nameSpace = svg.getAttribute("xmlns");
+      this.grid = svg.appendChild(document.createElementNS(this.nameSpace, "g"));
+      this.points = svg.appendChild(document.createElementNS(this.nameSpace, "g"));
       this.menu =  null;
       /*Length of one triangle of the grid*/
       this.xLength = 5;
@@ -39,27 +40,31 @@
      *Return: null
      */
     initialize() {
-      //Add start circle; will be above other elements
-      let circle = document.createElementNS(this.ns, "circle");
+      //Add center circle; will be above other elements
+      let circle = document.createElementNS(this.nameSpace, "circle");
       circle.setAttributeNS(null, "class", "center");
       circle.setAttributeNS(null, "r", '2');
       this.svg.appendChild(circle);
       /*Set viewBox to svg boundingClientRect so dimensions match,
         and preserveAspectRatio doesn't cause as many problems.
        */
-      const dim = this.svg.getBoundingClientRect();
-      const bBox = `0 0 ${dim.width} ${dim.height}`;
-      this.svg.setAttributeNS(null, "viewBox", bBox);
-      //Center the grid
-      this.viewBox.x -= this.viewBox.width / 2;
-      this.viewBox.y -= this.viewBox.height / 2;
+      const dimensions = this.svg.getBoundingClientRect();
       //Remember for zooming out to not go further than this
-      this.maxZoom = {w: this.viewBox.width, h: this.viewBox.height};
+      this.maxZoom = {
+        width: dimensions.width,
+        height: dimensions.height,
+        hypotenuse: Math.hypot(dimensions.height, dimensions.width)
+      };
+      //Center the grid
+      this.viewBox.width = dimensions.width;
+      this.viewBox.height = dimensions.height;
+      this.viewBox.x -= dimensions.width / 2;
+      this.viewBox.y -= dimensions.height / 2;
       //Call preparation functions
       this.drawLines();
       this.setMenu();
       this.setPoints();
-      this.setDrag();
+      this.setMove();
       this.setZoom();
       this.updateSVG();
     }
@@ -78,9 +83,9 @@
         Then by dividing by yLength(< xLength) and multiplying by xLength
         there will be extra grid space for the infinite illusion when dragging.
        */
-      const length = intDivide(
-        (this.viewBox.height > this.viewBox.width ? this.viewBox.height : this.viewBox.width),
-        2 * this.yLength) * 2 * this.xLength;
+      const length = intDivide(this.viewBox.height > this.viewBox.width ?
+        this.viewBox.height : this.viewBox.width, 2 * this.yLength
+        ) * 2 * this.xLength;
       var pointPairs = [];
       /*Create diagonal point pairs starting at half a length(which is even) to the left.
         Length is the height of a right triangle, which is sqrt(3) times the base.
@@ -105,7 +110,7 @@
       }
       //Take created point pairs to make lines
       for(const pair of pointPairs) {
-        let line = document.createElementNS(this.ns, "line");
+        let line = document.createElementNS(this.nameSpace, "line");
         line.setAttributeNS(null, "x1", pair.p1.x);
         line.setAttributeNS(null, "x2", pair.p2.x);
         line.setAttributeNS(null, "y1", pair.p1.y);
@@ -122,14 +127,14 @@
     setMenu() {
       const self = this;
       //group added here, so it is above everything else
-      this.menu = svg.appendChild(document.createElementNS(this.ns, "g"));
+      this.menu = svg.appendChild(document.createElementNS(this.nameSpace, "g"));
       this.menu.setAttributeNS(null, "class", "menu");
       //Menu Button appearance
-      let menuButton = this.menu.appendChild(document.createElementNS(this.ns, "g"));
+      let menuButton = this.menu.appendChild(document.createElementNS(this.nameSpace, "g"));
       menuButton.setAttributeNS(null, "class", "menuButton");
-      let menuButtonRect = document.createElementNS(this.ns, "rect");
+      let menuButtonRect = document.createElementNS(this.nameSpace, "rect");
       menuButtonRect.setAttributeNS(null, "class", "menuButtonRect");
-      let menuButtonText = document.createElementNS(this.ns, "text");
+      let menuButtonText = document.createElementNS(this.nameSpace, "text");
       menuButtonText.setAttributeNS(null, "class", "menuText");
       menuButtonText.setAttributeNS(null, "x", "7.5%");
       menuButtonText.setAttributeNS(null, "y", "5%");
@@ -175,40 +180,40 @@
      *Description:
      *Return: null
      */
-    setDrag() {
+    setMove() {
       //Use closure to hold variables between eventListeners
       const self = this;
       var svgPt = this.svg.createSVGPoint();
-      let dragging = false;
-      let start = {x:0, y:0};
+      let moving = false;
+      let start = {x: 0, y: 0};
 
-      this.svg.addEventListener("mousedown", startDrag);
-      this.svg.addEventListener("mousemove", midDrag);
-      this.svg.addEventListener("mouseup", endDrag);
-      this.svg.addEventListener("mouseleave", endDrag);
+      this.svg.addEventListener("mousedown", startMove);
+      this.svg.addEventListener("mousemove", midMove);
+      this.svg.addEventListener("mouseup", endMove);
+      this.svg.addEventListener("mouseleave", endMove);
       //convert viewPort coordinates to viewBox coordinates
       function getSVGPoint(event) {
         svgPt.x = event.clientX;
         svgPt.y = event.clientY;
         return svgPt.matrixTransform(self.svg.getScreenCTM().inverse());
       }
-      function startDrag(event) {
+      function startMove(event) {
         if(self.mode != 1) return null;
         //Prevent accidental highlighting
         event.preventDefault();
-        dragging = true;
+        moving = true;
         start = getSVGPoint(event);
       }
-      function midDrag(event) {
-        if(dragging) {
+      function midMove(event) {
+        if(moving) {
           let now = getSVGPoint(event);
           self.viewBox.x -= (now.x - start.x);
           self.viewBox.y -= (now.y - start.y);
           self.updateSVG();
         }
       }
-      function endDrag(event) {
-        dragging = false;
+      function endMove(event) {
+        moving = false;
       }
     }
 
@@ -220,33 +225,33 @@
     setZoom() {
       const self = this;
       let zooming = false;
-      let start = {x:0, y:0};
+      let start = {x: 0, y: 0};
 
       this.svg.addEventListener("mousedown", startZoom);
       this.svg.addEventListener("mousemove", midZoom);
       this.svg.addEventListener("mouseup", endZoom);
       this.svg.addEventListener("mouseleave", endZoom);
 
-      function getDistance(event) {
-        return Math.sqrt(Math.pow(event.clientX - self.maxZoom.w / 2, 2),
-          Math.pow(event.clientY - self.maxZoom.w / 2, 2));
+      function getDistanceFromSVGCenter(event) {
+        return Math.sqrt(Math.pow(event.clientX - self.maxZoom.width / 2, 2),
+          Math.pow(event.clientY - self.maxZoom.height / 2, 2));
       }
       function startZoom(event) {
         if(self.mode != 2) return null;
         //Prevent accidental highlighting
         event.preventDefault();
         zooming = true;
-        start = getDistance(event);
+        start = getDistanceFromSVGCenter(event);
       }
       function midZoom(event) {
         if(zooming) {
-          let now = getDistance(event);
-          self.viewBox.x += (now - start) / 4;
-          self.viewBox.y += Math.sqrt(3) * (now - start) / 4;
-          self.viewBox.width -= (now - start) / 2;
-          self.viewBox.height -= Math.sqrt(3) * (now - start) / 2;
+          let now = getDistanceFromSVGCenter(event);
+          const hypotRatio = (now - start) / self.maxZoom.hypotenuse;
+          self.viewBox.x += self.maxZoom.width * hypotRatio / 2;
+          self.viewBox.y += self.maxZoom.height * hypotRatio / 2;
+          self.viewBox.width -= self.maxZoom.width * hypotRatio;
+          self.viewBox.height -= self.maxZoom.height * hypotRatio;
           start = now;
-          console.log(self.viewBox);
           self.updateSVG();
         }
       }
@@ -302,8 +307,8 @@
    *Description: Determine how many whole denominators are in numerator
    *Return: whole number
    */
-  function intDivide(numer, denom) {
-    return Math.floor(numer / denom);
+  function intDivide(numerator, denominator) {
+    return Math.floor(numerator / denominator);
   }
 
   //Fill global or exports depending on import method
