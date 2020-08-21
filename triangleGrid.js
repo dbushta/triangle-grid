@@ -135,7 +135,7 @@
       let menuButtonRect = document.createElementNS(this.nameSpace, "rect");
       menuButtonRect.setAttributeNS(null, "class", "menuButtonRect");
       let menuButtonText = document.createElementNS(this.nameSpace, "text");
-      menuButtonText.setAttributeNS(null, "class", "menuText");
+      menuButtonText.setAttributeNS(null, "class", "menuButtonText");
       menuButtonText.setAttributeNS(null, "x", "7.5%");
       menuButtonText.setAttributeNS(null, "y", "5%");
       menuButtonText.appendChild(document.createTextNode("MENU"));
@@ -224,6 +224,7 @@
      */
     setZoom() {
       const self = this;
+      var svgPt = this.svg.createSVGPoint();
       let zooming = false;
       let start = {x: 0, y: 0};
 
@@ -233,8 +234,13 @@
       this.svg.addEventListener("mouseleave", endZoom);
 
       function getDistanceFromSVGCenter(event) {
-        return Math.sqrt(Math.pow(event.clientX - self.maxZoom.width / 2, 2),
-          Math.pow(event.clientY - self.maxZoom.height / 2, 2));
+        svgPt.x = event.clientX;
+        svgPt.y = event.clientY;
+        const newPt = svgPt.matrixTransform(self.svg.getScreenCTM().inverse());
+        //return svgPt.matrixTransform(self.svg.getScreenCTM().inverse());
+        return Math.hypot(newPt.x - (self.viewBox.x + self.viewBox.width / 2),
+          newPt.y - (self.viewBox.y + self.viewBox.height / 2));
+        //return Math.sqrt(Math.pow(newPt.x, 2), Math.pow(newPt.y, 2));
       }
       function startZoom(event) {
         if(self.mode != 2) return null;
@@ -246,12 +252,11 @@
       function midZoom(event) {
         if(zooming) {
           let now = getDistanceFromSVGCenter(event);
-          const hypotRatio = (now - start) / self.maxZoom.hypotenuse;
+          let hypotRatio = (now - start) / self.maxZoom.hypotenuse;
           self.viewBox.x += self.maxZoom.width * hypotRatio / 2;
           self.viewBox.y += self.maxZoom.height * hypotRatio / 2;
           self.viewBox.width -= self.maxZoom.width * hypotRatio;
           self.viewBox.height -= self.maxZoom.height * hypotRatio;
-          start = now;
           self.updateSVG();
         }
       }
@@ -267,7 +272,7 @@
      */
     setPoints() {
       const self = this;
-      this.points.setAttributeNS(null, "id", "Points");
+      this.points.setAttributeNS(null, "class", "Points");
 
       this.svg.addEventListener("mousedown", addPoints);
       this.svg.addEventListener("mousedown", removePoints);
