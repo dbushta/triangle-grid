@@ -19,10 +19,12 @@
     constructor(svg) {
       if(svg.tagName.toLowerCase() != "svg") throw "triangleGrid constructor failed, no svg given";
       this.nameSpace = "http://www.w3.org/2000/svg";
-      this.svg = svg;
+      this.staticSVG = svg;
       this.scaledSVG = svg.appendChild(document.createElementNS(this.nameSpace, "svg"));
       this.grid = this.scaledSVG.appendChild(document.createElementNS(this.nameSpace, "g"));
+      this.grid.classList.add("grid");
       this.points = this.scaledSVG.appendChild(document.createElementNS(this.nameSpace, "g"));
+      this.points.classList.add("points");
       this.menu =  null;
       /*Length of one triangle of the grid*/
       this.xLength = 5;
@@ -44,13 +46,13 @@
     initialize() {
       //Add center circle; will be above other elements
       let circle = document.createElementNS(this.nameSpace, "circle");
-      circle.classList.toggle("center");
+      circle.classList.add("center");
       circle.setAttributeNS(null, "r", '2');
       this.scaledSVG.appendChild(circle);
       /*Set viewBox to svg boundingClientRect so dimensions match,
         and preserveAspectRatio doesn't cause as many problems.
        */
-      const dimensions = this.svg.getBoundingClientRect();
+      const dimensions = this.staticSVG.getBoundingClientRect();
       //Remember for zooming out to not go further than this
       this.maxZoom = {
         width: dimensions.width,
@@ -64,10 +66,10 @@
       this.viewBox.y -= dimensions.height / 2;
       //Call preparation functions
       this.drawLines();
-      this.setMenu();
-      //this.setPoints();
       this.setMove();
       this.setZoom();
+      this.setPoints();
+      this.setMenu();
       this.updateSVG();
     }
 
@@ -77,7 +79,6 @@
      *Return: null
      */
     drawLines() {
-      this.grid.classList.toggle("Grid");
       /*length equation reasoning:
         use the longer side of the svg's viewBox, and evenly divide by 2 yLengths
         intDivide for integer to guarantee diagonals intersect cleanly at (0, 0)
@@ -128,27 +129,27 @@
     setMenu() {
       const self = this;
       //group added here, so it is above everything else
-      this.menu = this.svg.appendChild(document.createElementNS(this.nameSpace, "g"));
-      this.menu.classList.toggle("menu");
+      this.menu = this.staticSVG.appendChild(document.createElementNS(this.nameSpace, "g"));
+      this.menu.classList.add("menu");
       this.menu.setAttributeNS(null, "transform", `translate(
         ${this.maxZoom.width * .425}, ${this.maxZoom.height * .9}
       )`);
       //Menu Button appearance
       let menuButton = this.menu.appendChild(document.createElementNS(this.nameSpace, "g"));
-      menuButton.classList.toggle("menuButton");
+      menuButton.classList.add("menuButton");
       let menuButtonRect = document.createElementNS(this.nameSpace, "rect");
-      menuButtonRect.classList.toggle("menuButtonRect");
+      menuButtonRect.classList.add("menuButtonRect");
+      menuButton.appendChild(menuButtonRect);
       let menuButtonText = document.createElementNS(this.nameSpace, "text");
-      menuButtonText.classList.toggle("menuButtonText");
+      menuButtonText.classList.add("menuButtonText");
       setAttributesNS(menuButtonText, null, {'x': "7.5%", 'y': "5%"});
       menuButtonText.appendChild(document.createTextNode("MENU"));
-      menuButton.appendChild(menuButtonRect);
       menuButton.appendChild(menuButtonText);
       //Inner button appearance, copy menu button and adjust values
       let options = ["DRAG", "ZOOM", "ADD", "REMOVE"];
       for(let i = 0, iLen = options.length; i < iLen; ++i) {
         let menuOption = menuButton.cloneNode(true);
-        menuOption.childNodes[0].classList.toggle("controlMode");
+        menuOption.childNodes[0].classList.add("controlMode");
         setAttributesNS(menuOption.childNodes[0], null,
           {'x': "12.5%", 'y': `${10 + 20 * i}%`, "data-number": `${i + 1}`}
         );
@@ -193,10 +194,10 @@
       let moving = false;
       let start = {x: 0, y: 0};
 
-      this.svg.addEventListener("mousedown", startMove);
-      this.svg.addEventListener("mousemove", midMove);
-      this.svg.addEventListener("mouseup", endMove);
-      this.svg.addEventListener("mouseleave", endMove);
+      this.staticSVG.addEventListener("mousedown", startMove);
+      this.staticSVG.addEventListener("mousemove", midMove);
+      this.staticSVG.addEventListener("mouseup", endMove);
+      this.staticSVG.addEventListener("mouseleave", endMove);
       //convert viewPort coordinates to viewBox coordinates
       function getSVGPoint(event) {
         svgPt.x = event.clientX;
@@ -234,10 +235,10 @@
       let zooming = false;
       let start = {x: 0, y: 0};
 
-      this.svg.addEventListener("mousedown", startZoom);
-      this.svg.addEventListener("mousemove", midZoom);
-      this.svg.addEventListener("mouseup", endZoom);
-      this.svg.addEventListener("mouseleave", endZoom);
+      this.staticSVG.addEventListener("mousedown", startZoom);
+      this.staticSVG.addEventListener("mousemove", midZoom);
+      this.staticSVG.addEventListener("mouseup", endZoom);
+      this.staticSVG.addEventListener("mouseleave", endZoom);
 
       function getDistanceFromSVGCenter(event) {
         svgPt.x = event.clientX;
@@ -248,7 +249,6 @@
       }
       function startZoom(event) {
         if(self.mode != 2) return null;
-        console.log("zoom");
         //Prevent accidental highlighting
         event.preventDefault();
         zooming = true;
@@ -284,18 +284,36 @@
      */
     setPoints() {
       const self = this;
-      this.points.classList.toggle("Points");
+      var svgPt = this.scaledSVG.createSVGPoint();
 
-      this.scaledSVG.addEventListener("mousedown", addPoints);
-      this.scaledSVG.addEventListener("mousedown", removePoints);
+      this.staticSVG.addEventListener("mousedown", addPoints);
+      this.staticSVG.addEventListener("mousedown", removePoints);
 
+      //convert viewPort coordinates to viewBox coordinates
+      function getSVGPoint(event) {
+        svgPt.x = event.clientX;
+        svgPt.y = event.clientY;
+        return svgPt.matrixTransform(self.scaledSVG.getScreenCTM().inverse());
+      }
       function addPoints(event) {
         if(self.mode != 3) return null;
-        console.log("ADD");
+        let newPt = getSVGPoint(event);
+        let yLengths = intDivide(newPt.y, self.yLength);
+        let xLengths = Math.floor(newPt.x / self.xLength - yLengths / 2);
+
+        let circle = document.createElementNS(self.nameSpace, "circle");
+        setAttributesNS(circle, null, {
+          'r': '2',
+          'cx': self.xLength * (xLengths + yLengths / 2),
+          'cy': yLengths * self.yLength
+        });
+        circle.classList.add("point");
+        self.points.appendChild(circle);
       }
       function removePoints(event) {
         if(self.mode != 4) return null;
-        console.log("REMOVE");
+        if(!event.target.classList.contains("point")) return null;
+        event.target.remove();
       }
     }
 
