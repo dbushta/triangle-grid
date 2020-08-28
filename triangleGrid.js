@@ -36,6 +36,7 @@
       this.maxZoom = null;
       /*Modes:{0: menu, 1: drag, 2: zoom, 3: add, 4: remove}*/
       this.mode = 1;
+      this.initialize();
     }
 
     /*Function initialize
@@ -332,6 +333,30 @@
     }
   }
 
+  class menuModule {
+    constructor() {
+
+    }
+  }
+
+  class moveModule {
+    constructor() {
+
+    }
+  }
+
+  class zoomModule {
+    constructor() {
+
+    }
+  }
+
+  class pointModule {
+    constructor() {
+
+    }
+  }
+
   /*Function intDivide
    *Parameters: numerator(number), denominator(number)
    *Description: Determine how many whole denominators are in numerator
@@ -354,6 +379,10 @@
 
   //Fill global or exports depending on import method
   exports.triangleGrid = triangleGrid;
+  exports.menuModule = menuModule;
+  exports.moveModule = moveModule;
+  exports.zoomModule = zoomModule;
+  exports.pointModule = pointModule;
   exports.intDivide = intDivide;
   exports.setAttributesNS = setAttributesNS;
 }));
