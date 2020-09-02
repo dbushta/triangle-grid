@@ -11,7 +11,9 @@
     <script src="triangleGrid.js"></script>
     <script>
       var svg1 = document.getElementById("example1");
-      var grid = new triGrid.triangleGrid(svg1);
+      var grid = new triGrid.triangleGrid(svg1,
+        [triGrid.moveModule, triGrid.zoomModule, triGrid.pointModule, triGrid.menuModule]
+      );
     </script>
   </body>
 </html>

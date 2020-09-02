@@ -16,26 +16,22 @@
    *Description: a class to control Triangle Grid through
    */
   class triangleGrid {
-    constructor(svg) {
+    constructor(svg, modules) {
       if(svg.tagName.toLowerCase() != "svg") throw "triangleGrid constructor failed, no svg given";
       this.nameSpace = "http://www.w3.org/2000/svg";
       this.staticSVG = svg;
       this.scaledSVG = svg.appendChild(document.createElementNS(this.nameSpace, "svg"));
       this.grid = this.scaledSVG.appendChild(document.createElementNS(this.nameSpace, "g"));
       this.grid.classList.add("grid");
-      this.points = this.scaledSVG.appendChild(document.createElementNS(this.nameSpace, "g"));
-      this.points.classList.add("points");
-      this.menu =  null;
       /*Length of one triangle of the grid*/
       this.xLength = 5;
       /*Height of one triangle*/
       this.yLength = Math.sqrt(3) * this.xLength / 2;
       this.viewBox = this.scaledSVG.viewBox.baseVal;
-      /*Used for zoom functions*/
-      this.currentZoom = 1;
+      /*Modes: MENU, DRAG, ZOOM, ADD, REMOVE*/
       this.maxZoom = null;
-      /*Modes:{0: menu, 1: drag, 2: zoom, 3: add, 4: remove}*/
-      this.mode = 1;
+      this.mode = "MENU";
+      this.modules = modules;
       this.initialize();
     }
 
@@ -54,7 +50,7 @@
         and preserveAspectRatio doesn't cause as many problems.
        */
       const dimensions = this.staticSVG.getBoundingClientRect();
-      //Remember for zooming out to not go further than this
+      //Remember max size before infinite grid illusion is broken
       this.maxZoom = {
         width: dimensions.width,
         height: dimensions.height,
@@ -67,11 +63,10 @@
       this.viewBox.y -= dimensions.height / 2;
       //Call preparation functions
       this.drawLines();
-      this.setMove();
-      this.setZoom();
-      this.setPoints();
-      this.setMenu();
       this.updateSVG();
+      for(const module of this.modules) {
+        new module(this);
+      }
     }
 
     /*Method drawLines
@@ -122,18 +117,40 @@
       }
     }
 
-    /*Method setMenu
+    /*Method updateSVG
      *Parameters: null
-     *Description: allow user to change modes
+     *Description: update state of svg viewBox, and reposition grid
      *Return: null
      */
+    updateSVG() {
+      const self = this;
+      //Find the nearest whole x and y pattern length and move grid to it.
+      this.grid.setAttributeNS(null, "transform", `translate(
+        ${this.xLength * intDivide(this.viewBox.x, this.xLength)},
+        ${2 * this.yLength * intDivide(this.viewBox.y, 2 * this.yLength)}
+      )`);
+    }
+  }
+
+
+  /*Method menuModule
+   *Parameters: null
+   *Description: install setMenu
+   *Return: null
+   */
+  class menuModule {
+    constructor(program) {
+      program.menu = program.staticSVG.appendChild(document.createElementNS(program.nameSpace, "g"));
+      program.menu.classList.add("menu");
+      program.setMenu = this.setMenu;
+      program.setMenu();
+    }
+
     setMenu() {
       const self = this;
       //group added here, so it is above everything else
-      this.menu = this.staticSVG.appendChild(document.createElementNS(this.nameSpace, "g"));
-      this.menu.classList.add("menu");
       this.menu.setAttributeNS(null, "transform", `translate(
-        ${this.maxZoom.width * .425}, ${this.maxZoom.height * .9}
+        ${this.maxZoom.width * .3}, ${this.maxZoom.height * .05}
       )`);
       //Menu Button appearance
       let menuButton = this.menu.appendChild(document.createElementNS(this.nameSpace, "g"));
@@ -147,18 +164,19 @@
       menuButtonText.appendChild(document.createTextNode("MENU"));
       menuButton.appendChild(menuButtonText);
       //Inner button appearance, copy menu button and adjust values
-      let options = ["DRAG", "ZOOM", "ADD", "REMOVE"];
+      let options = ["MOVE", "ZOOM", "ADD", "REMOVE"];
       for(let i = 0, iLen = options.length; i < iLen; ++i) {
         let menuOption = menuButton.cloneNode(true);
         menuOption.childNodes[0].classList.add("controlMode");
         setAttributesNS(menuOption.childNodes[0], null,
-          {'x': "12.5%", 'y': `${10 + 20 * i}%`, "data-number": `${i + 1}`}
+          {'x': "12.5%", 'y': `${10 + 20 * i}%`, "data-control": `${options[i]}`}
         );
         setAttributesNS(menuOption.childNodes[1], null, {'x': "20%", 'y': `${15 + 20 * i}%`});
         menuOption.childNodes[1].childNodes[0].nodeValue = options[i];
         this.menu.appendChild(menuOption);
       }
 
+      menuButtonRect.classList.toggle("menuButtonExpanded");
       let previousMode = 0;
       this.menu.addEventListener("mousedown", menuControl);
 
@@ -166,28 +184,36 @@
         //Prevent behavior of the menuButton from setting mode to 0
         event.stopPropagation();
         //If going into menu, hold mode, else what mode was clicked on?
-        if(self.mode) {
+        if(self.mode != "MENU") {
           previousMode = self.mode;
-          self.mode = 0;
+          self.mode = "MENU";
         } else {
           self.mode = event.target.classList.contains("controlMode") ?
-            +event.target.dataset.number : previousMode;
+            event.target.dataset.control : previousMode;
         }
         //toggle the button to change appearance.
         menuButtonRect.classList.toggle("menuButtonExpanded");
         self.menu.setAttributeNS(null, "transform", `translate(
-          ${self.maxZoom.width * (self.mode ? .425 : .3)},
-          ${self.maxZoom.height * (self.mode ? .9 : .05)}
+          ${self.maxZoom.width * (self.mode != "MENU" ? .425 : .3)},
+          ${self.maxZoom.height * (self.mode != "MENU" ? .9 : .05)}
         )`);
         self.updateSVG();
       }
     }
+  }
 
-    /*Method setDrag
-     *Parameters: null
-     *Description:
-     *Return: null
-     */
+
+  /*Class moveModule
+   *Parameters: null
+   *Description: install setMove
+   *Return: null
+   */
+  class moveModule {
+    constructor(program) {
+      program.setMove = this.setMove;
+      program.setMove();
+    }
+
     setMove() {
       //Use closure to hold variables between eventListeners
       const self = this;
@@ -206,7 +232,7 @@
         return svgPt.matrixTransform(self.scaledSVG.getScreenCTM().inverse());
       }
       function startMove(event) {
-        if(self.mode != 1) return null;
+        if(self.mode != "MOVE") return null;
         //Prevent accidental highlighting
         event.preventDefault();
         moving = true;
@@ -224,12 +250,21 @@
         moving = false;
       }
     }
+  }
 
-    /*Method SetZoom
-     *Parameter: null
-     *Description: adjust position and scale of screen to zoom between [x,y]Length to maxZoom
-     *Return: null
-     */
+
+  /*Method zoomModule
+   *Parameter: null
+   *Description: install setZoom
+   *Return: null
+   */
+  class zoomModule {
+    constructor(program) {
+      program.currentZoom = 1
+      program.setZoom = this.setZoom;
+      program.setZoom();
+    }
+
     setZoom() {
       const self = this;
       var svgPt = this.scaledSVG.createSVGPoint();
@@ -249,7 +284,7 @@
           newPt.y - (self.viewBox.y + self.viewBox.height / 2));
       }
       function startZoom(event) {
-        if(self.mode != 2) return null;
+        if(self.mode != "ZOOM") return null;
         //Prevent accidental highlighting
         event.preventDefault();
         zooming = true;
@@ -277,12 +312,22 @@
         zooming = false;
       }
     }
+  }
 
-    /*Method setPoints
-     *Parameters: null
-     *Description: add and remember points on svg
-     *Return: null
-     */
+
+  /*Method pointModule
+   *Parameters: null
+   *Description: install setPoints
+   *Return: null
+   */
+  class pointModule {
+    constructor(program) {
+      program.points = program.scaledSVG.appendChild(document.createElementNS(program.nameSpace, "g"));
+      program.points.classList.add("points");
+      program.setPoints = this.setPoints;
+      program.setPoints();
+    }
+
     setPoints() {
       const self = this;
       var svgPt = this.scaledSVG.createSVGPoint();
@@ -297,7 +342,7 @@
         return svgPt.matrixTransform(self.scaledSVG.getScreenCTM().inverse());
       }
       function addPoints(event) {
-        if(self.mode != 3) return null;
+        if(self.mode != "ADD") return null;
         let newPt = getSVGPoint(event);
         let yLengths = intDivide(newPt.y, self.yLength);
         let xLengths = Math.floor(newPt.x / self.xLength - yLengths / 2);
@@ -312,48 +357,10 @@
         self.points.appendChild(circle);
       }
       function removePoints(event) {
-        if(self.mode != 4) return null;
+        if(self.mode != "REMOVE") return null;
         if(!event.target.classList.contains("point")) return null;
         event.target.remove();
       }
-    }
-
-    /*Method updateSVG
-     *Parameters: null
-     *Description: update state of svg viewBox, and reposition grid
-     *Return: null
-     */
-    updateSVG() {
-      const self = this;
-      //Find the nearest whole x and y pattern length and move grid to it.
-      this.grid.setAttributeNS(null, "transform", `translate(
-        ${this.xLength * intDivide(this.viewBox.x, this.xLength)},
-        ${2 * this.yLength * intDivide(this.viewBox.y, 2 * this.yLength)}
-      )`);
-    }
-  }
-
-  class menuModule {
-    constructor() {
-
-    }
-  }
-
-  class moveModule {
-    constructor() {
-
-    }
-  }
-
-  class zoomModule {
-    constructor() {
-
-    }
-  }
-
-  class pointModule {
-    constructor() {
-
     }
   }
 
