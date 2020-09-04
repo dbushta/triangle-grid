@@ -1,15 +1,14 @@
 (function(global, factory) {
-  if(false) {
-    //Node
-  } else if(false) {
-    //AMD
+  if(typeof module !== "undefined" && typeof exports !== "undefined") {
+    factory(module.exports);
+  } else if(typeof define === "function") {
+    define(["exports"], factory);
   } else {
-    //Add an object called triGrid to global with exports
-    global = global || self;
+    typeof globalThis !== "undefined" ? globalThis : global || self;
     factory(global.triGrid = global.triGrid || {});
   }
 }(this, function(exports) {
-  "use strict"
+  "use strict";
 
   /*Class triangleGrid
    *Constructor: svg
@@ -57,6 +56,10 @@
         hypotenuse: Math.hypot(dimensions.height, dimensions.width)
       };
       //Center the grid
+      this.staticSVG.setAttributeNS(null, "viewBox",
+        `0 0 ${dimensions.width} ${dimensions.height}`);
+      this.scaledSVG.setAttributeNS(null, "viewBox",
+        `0 0 ${dimensions.width} ${dimensions.height}`);
       this.viewBox.width = dimensions.width;
       this.viewBox.height = dimensions.height;
       this.viewBox.x -= dimensions.width / 2;
@@ -392,4 +395,5 @@
   exports.pointModule = pointModule;
   exports.intDivide = intDivide;
   exports.setAttributesNS = setAttributesNS;
+  exports.__esModule = true;
 }));
