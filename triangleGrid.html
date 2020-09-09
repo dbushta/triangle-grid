@@ -6,75 +6,82 @@
     <link rel="stylesheet" href="triangleGrid.css">
   </head>
   <body>
-    <h1>How the grid will look with different SVGs</h1>
+    <svg class="backGround"></svg>
+    <div class="center noHighlight">
+      <section class="monochrome">
+        <h1>How the grid will look with different SVGs</h1>
 
-    <details>
-      <summary>Want to help debug?</summary>
-      <ul>
-        <li>Change window size</li>
-        <li>Mess with each grid</li>
-        <li>Try different browsers</li>
-        <li>Try different devices</li>
-        <li>Found problem: what was it?</li>
-      </ul>
-    </details>
+        <details>
+          <summary>Want to help debug?</summary>
+          <h3>Try the following</h3>
+          <p>
+            Change window size</br>
+            Mess with each grid</br>
+            Try different browsers</br>
+            Try different devices
+          </p>
+          <p>Found a problem: what was it?</p>
+        </details>
+      </section>
 
-    <section>
-      <h2>SVG has height and width in pixels only</h2>
-      <svg id="example1" height="300" width="500"></svg>
-    </section>
+      <section class="monochrome">
+        <h2>SVG has height and width in pixels only</h2>
+        <svg class="monochrome" height="300" width="500"></svg>
+      </section>
 
-    <section>
-      <h2>SVG has height and width in percents only</h2>
-      <svg id="example2" height="50%" width = 50%></svg>
-    </section>
+      <section class="monochrome">
+        <h2>SVG has height and width in percents only</h2>
+        <svg class="monochrome" height="50%" width = 50%></svg>
+      </section>
 
-    <section>
-      <h2>SVG has viewBox only</h2>
-      <svg id="example3" viewBox="0 0 300 500"></svg>
-    </section>
+      <section class="monochrome">
+        <h2>SVG has viewBox only</h2>
+        <svg class="monochrome" viewBox="0 0 300 500"></svg>
+      </section>
 
-    <section>
-      <h2>SVG has viewBox height and width in pixels</h2>
-      <svg id="example4" height="300" width="500" viewBox="0 0 300 500"></svg>
-    </section>
+      <section class="monochrome">
+        <h2>SVG has viewBox height and width in pixels</h2>
+        <svg class="monochrome" height="300" width="500" viewBox="0 0 300 500"></svg>
+      </section>
 
-    <section>
-      <h2>SVG has viewBox but height and width in pixels inverted</h2>
-      <svg id="example5" height="500" width="300" viewBox="0 0 300 500"></svg>
-    </section>
+      <section class="monochrome">
+        <h2>SVG has viewBox but height and width in pixels inverted</h2>
+        <svg class="monochrome" height="500" width="300" viewBox="0 0 300 500"></svg>
+      </section>
 
-    <section>
-      <h2>Grid controlled external to svg by radio buttons</h2>
-      <div id="radioManager">
-        <div><input type="radio" id="MOVE" name="externalControl"></input>MOVE</div>
-        <div><input type="radio" id="ZOOM" name="externalControl"></input>ZOOM</div>
-        <div><input type="radio" id="ADD" name="externalControl"></input>ADD</div>
-        <div><input type="radio" id="REMOVE" name="externalControl"></input>REMOVE</div>
-      </div>
-      <svg id="example6" height="300" viewBox="0 0 500 300"></svg>
-    </section>
+      <section class="monochrome">
+        <h2>Grid controlled external to svg by radio buttons</h2>
+        <div id="radioManager">
+          <div><input type="radio" name="externalControl" value="MOVE">MOVE</input></div>
+          <div><input type="radio" name="externalControl" value="ZOOM">ZOOM</input></div>
+          <div><input type="radio" name="externalControl" value="ADD">ADD</input></div>
+          <div><input type="radio" name="externalControl" value="REMOVE">REMOVE</input></div>
+        </div>
+        <svg class="monochrome" height="300" viewBox="0 0 500 300"></svg>
+      </section>
+    </div>
 
     <script src="triangleGrid.js"></script>
 
     <script>
-      //Make a static node list.
+      //Make a static node list, bc triangle Grid makes additional SVGs.
       var allSVGs = document.querySelectorAll("svg");
       var allGrids = [];
+
       //create a grid class for every svg.
-      for(let i = 0; i < 5; i++) {
-        allGrids.push(new triGrid.triangleGrid(allSVGs[i],
-          [triGrid.moveModule, triGrid.zoomModule, triGrid.pointModule, triGrid.menuModule]
-        ));
+      for(let i = 0; i < allSVGs.length; i++) {
+        let options = [triGrid.moveModule, triGrid.zoomModule, triGrid.pointModule, triGrid.menuModule];
+        //For background
+        if(!i) options = [];
+        //Load svg 5 with no menuModule, so only radioManager down below can control.
+        if(i == 6) options.pop();
+        allGrids.push(new triGrid.triangleGrid(allSVGs[i], !i ? 25 : 5, options));
       }
-      //External control svg grid, created without menuModule.
-      allGrids.push(new triGrid.triangleGrid(allSVGs[5],
-        [triGrid.moveModule, triGrid.zoomModule, triGrid.pointModule]
-      ));
+
       //Go into grid class and change mode using closures
       var radioManager = document.getElementById("radioManager");
       radioManager.addEventListener("click", (event) => {
-        allGrids[5].mode = event.target.getAttribute("id");
+        allGrids[6].mode = event.target.value;
       });
     </script>
   </body>

@@ -15,7 +15,7 @@
    *Description: a class to control Triangle Grid through
    */
   class triangleGrid {
-    constructor(svg, modules) {
+    constructor(svg, triangleSideLength, modules) {
       if(svg.tagName.toLowerCase() != "svg") throw "triangleGrid constructor failed, no svg given";
       this.nameSpace = "http://www.w3.org/2000/svg";
       this.staticSVG = svg;
@@ -23,7 +23,7 @@
       this.grid = this.scaledSVG.appendChild(document.createElementNS(this.nameSpace, "g"));
       this.grid.classList.add("grid");
       /*Length of one triangle of the grid*/
-      this.xLength = 5;
+      this.xLength = triangleSideLength;
       /*Height of one triangle*/
       this.yLength = Math.sqrt(3) * this.xLength / 2;
       this.viewBox = this.scaledSVG.viewBox.baseVal;
@@ -41,10 +41,9 @@
      */
     initialize() {
       //Add center circle; will be above other elements
-      let circle = document.createElementNS(this.nameSpace, "circle");
-      circle.classList.add("center");
-      circle.setAttributeNS(null, "r", '2');
-      this.scaledSVG.appendChild(circle);
+      createAndSetElement("circle", this.scaledSVG, this.nameSpace,
+        {"class": "centerCircle", 'r': 2}
+      );
       /*Set viewBox to svg boundingClientRect so dimensions match,
         and preserveAspectRatio doesn't cause as many problems.
        */
@@ -66,10 +65,10 @@
       this.viewBox.y -= dimensions.height / 2;
       //Call preparation functions
       this.drawLines();
-      this.updateSVG();
       for(const module of this.modules) {
         new module(this);
       }
+      this.updateSVG();
     }
 
     /*Method drawLines
@@ -79,14 +78,13 @@
      */
     drawLines() {
       /*length equation reasoning:
-        use the longer side of the svg's viewBox, and evenly divide by 2 yLengths
-        intDivide for integer to guarantee diagonals intersect cleanly at (0, 0)
-        then multiply by 2 to guarantee length is an even number.
-        Then by dividing by yLength(< xLength) and multiplying by xLength
-        there will be extra grid space for the infinite illusion when dragging.
+        use the longer side of the svg's viewBox, and intDivide by 2 yLengths
+        then multiply by 2 xLengths bc yLength < xLength so length is an even number
+        and large enough for the infinite grid illusion to work when moving.
        */
       const length = intDivide(this.viewBox.height > this.viewBox.width ?
-        this.viewBox.height : this.viewBox.width, 2 * this.yLength
+        this.viewBox.height : this.viewBox.width,
+        2 * this.yLength
         ) * 2 * this.xLength;
       var pointPairs = [];
       /*Create diagonal point pairs starting at half a length(which is even) to the left.
@@ -112,11 +110,9 @@
       }
       //Take created point pairs to make lines
       for(const pair of pointPairs) {
-        let line = document.createElementNS(this.nameSpace, "line");
-        setAttributesNS(line, null,
-          {"x1": pair.p1.x, "x2": pair.p2.x, "y1": pair.p1.y, "y2": pair.p2.y}
+        createAndSetElement("line", this.grid, this.nameSpace,
+          {"class":"gridLine", "x1": pair.p1.x, "x2": pair.p2.x, "y1": pair.p1.y, "y2": pair.p2.y}
         );
-        this.grid.appendChild(line);
       }
     }
 
@@ -126,7 +122,6 @@
      *Return: null
      */
     updateSVG() {
-      const self = this;
       //Find the nearest whole x and y pattern length and move grid to it.
       this.grid.setAttributeNS(null, "transform", `translate(
         ${this.xLength * intDivide(this.viewBox.x, this.xLength)},
@@ -376,6 +371,17 @@
     return Math.floor(numerator / denominator);
   }
 
+  /*Function createAndSetElement
+   *Parameters: elementName(string), nameSpace(string), attributes(object)
+   *Description: create Element then use setAttributesNS to ready.
+   *Return: null
+   */
+  function createAndSetElement(elementName, parentElement, nameSpace, attributes) {
+    let newElement = document.createElementNS(nameSpace, elementName);
+    setAttributesNS(newElement, null, attributes);
+    parentElement.appendChild(newElement);
+  }
+
   /*Function setAttributesNS
    *Parameters: element(svg object), nameSpace(string), attributes(object)
    *Description: take object of attributes and value and set in element
@@ -394,6 +400,7 @@
   exports.zoomModule = zoomModule;
   exports.pointModule = pointModule;
   exports.intDivide = intDivide;
+  exports.createAndSetElement = createAndSetElement;
   exports.setAttributesNS = setAttributesNS;
   exports.__esModule = true;
 }));
