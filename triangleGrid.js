@@ -135,52 +135,47 @@
   const moduleMenu = {
     prepareProgram: function(program) {
       program.menu = createAndSetElement("g", program.staticSVG, program.nameSpace, {
-        "class": "menu", "transform": `translate(${program.maxZoom.width * .425},
-        ${program.maxZoom.height * .9})`});
+        "class": "menu", "transform": `translate(${program.maxZoom.width * .25}, 0)`});
       program.setMenu = this.setMenu;
+      program.currentMode = "MENU";
       program.setMenu();
     },
 
     setMenu() {
       const self = this;
-      //Menu Button appearance
       let menuSVG = createAndSetElement("svg", this.menu, this.nameSpace, {
-        "class": "menu", 'x': 50, 'y': 50, "height": 200, "width": 100,
-        "transform": `translate(${this.maxZoom.width * .425}, ${this.maxZoom.height * .9})`});
+        "class": "menu", "width": "50%"});
 
-      let circle = createAndSetElement("circle", menuSVG, this.nameSpace, {
-        'r': 5
-      });
+      let toggleable = [createAndSetElement("rect", menuSVG, this.nameSpace,
+        {"class": "menuBackground hideElement", "width": "100%", "height": "100%"})];
 
-      let menuButton = createAndSetElement("g", this.menu, this.nameSpace,
-        {"class": "menuButton"});
-      let menuButtonRect = createAndSetElement("rect", menuButton, this.nameSpace,
-        {"class": "menuButtonRect"});
-      let menuButtonText = createAndSetElement("text", menuButton, this.nameSpace,
-        {"class": "menuButtonText", 'x': "7.5%", 'y': "5%"});
-      menuButtonText.appendChild(document.createTextNode("MENU"));
+      const menuButton = createAndSetElement("g", menuSVG, this.nameSpace, {
+        "transform": `translate(${this.maxZoom.width * .125}, ${this.maxZoom.height * .9})`});
+      toggleable.push(menuButton);
+      createAndSetElement("rect", menuButton, this.nameSpace,
+        {"class": "menuBackground menuOption menuButtonHover", "width": "50%", "height": "10%"});
+      createAndSetElement("text", menuButton, this.nameSpace,
+        {"class": "menuButtonText", 'x': "25%", 'y': "5%"}
+      ).appendChild(document.createTextNode(this.currentMode));
       //Inner button appearance, copy menu button and adjust values
       for(let i = 0, iLen = this.modes.length; i < iLen; ++i) {
-        let menuOption = menuButton.cloneNode(true);
-        setAttributesNS(menuOption.childNodes[0], null,
-          {'x': "50%", 'y': `${10 + 20 * i}%`, "data-control": `${this.modes[i]}`});
-        setAttributesNS(menuOption.childNodes[1], null,
-          {'x': "50%", 'y': `${15 + 20 * i}%`});
+        const menuOption = menuButton.cloneNode(true);
+        toggleable.push(menuOption);
+        setAttributesNS(menuOption, null, {
+          "class": "hideElement", "transform": `translate(${this.maxZoom.width * .125},
+          ${this.maxZoom.height * (1 + i) * .15})`});
         menuOption.childNodes[1].childNodes[0].nodeValue = this.modes[i];
         menuSVG.appendChild(menuOption);
       }
 
-      this.menu.addEventListener("mousedown", menuControl);
+      this.menu.addEventListener("click", menuControl);
 
       function menuControl(event) {
         event.stopPropagation();
-        if(event.target.classList.contains("menuButtonExpanded")) return null;
-        self.currentMode = self.currentMode != "MENU" ? "MENU" : event.target.dataset.control;
-        //toggle the button to change appearance.
-        menuButtonRect.classList.toggle("menuButtonExpanded");
-        self.menu.setAttributeNS(null, "transform", `translate(
-          ${self.maxZoom.width * (self.currentMode != "MENU" ? .425 : .3)},
-          ${self.maxZoom.height * (self.currentMode != "MENU" ? .9 : .05)})`);
+        if(!event.target.classList.contains("menuOption")) return null;
+        self.currentMode = event.target.parentElement.childNodes[1].childNodes[0].nodeValue;
+        menuButton.childNodes[1].childNodes[0].nodeValue = self.currentMode;
+        for(const element of toggleable) element.classList.toggle("hideElement");
       }
     }
   };

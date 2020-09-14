@@ -6,6 +6,10 @@
   position: relative;
 }
 
+.hideElement {
+  visibility: hidden;
+}
+
 .blueBackground {
   background-color: powderblue;
 }
@@ -56,25 +60,14 @@
   stroke-width: 1;
 }
 
-.menuButtonRect {
+.menuBackground {
   fill: #f0f8ffa0;
   stroke: #a0a8af;
-  height: 10%;
   rx: 2%;
-  width: 15%;
 }
 
-.menuButtonRect:hover {
+.menuButtonHover:hover {
   fill: #f0f8ff;
-}
-
-.menuButtonExpanded {
-  height: 90%;
-  width: 40%;
-}
-
-.menuButtonExpanded:hover {
-  fill: #f0f8ffa0;
 }
 
 .menuButtonText {
