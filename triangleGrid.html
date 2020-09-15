@@ -58,7 +58,7 @@
 
     <script>
       //Hide anonymous function and variables from global space
-      (() => {//Delete this line and the next to unhide
+      (() => {//Comment this line and the next to unhide
         //Make a static node list, bc triangle Grid makes additional SVGs.
         var allSVGs = document.querySelectorAll("svg");
         var allGrids = [];
@@ -79,7 +79,7 @@
         radioManager.addEventListener("click", (event) => {
           allGrids[6].currentMode = event.target.value;});
 
-      })();//Delete this line and previous to unhide
+      })();//Comment this line and previous to unhide
 
     </script>
   </body>

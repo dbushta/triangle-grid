@@ -40,6 +40,7 @@
       this.currentMode = "null";
       this.modules = modules;
       this.initialize();
+      this.updateSVG();
     }
 
     /*Function initialize
@@ -66,12 +67,13 @@
       this.viewBox.y -= dimensions.height / 2;
       //Call preparation functions
       this.drawLines();
-      if(this.modules) {
-        for(const module of this.modules) {
-          module.prepareProgram(this);
-        }
+      if(!this.modules) return null;
+      for(const module of this.modules) {
+        if(module.hasOwnProperty("necessities")) module.necessities(this);
       }
-      this.updateSVG();
+      for(const module of this.modules) {
+        if(module.hasOwnProperty("preparation")) module.preparation.call(this);
+      }
     }
 
     /*Method drawLines
@@ -85,8 +87,8 @@
         then multiply by 2 xLengths bc yLength < xLength so length is an even number
         and large enough for the infinite grid illusion to work when moving.
        */
-      const length = intDivide(this.viewBox.height > this.viewBox.width ?
-        this.viewBox.height : this.viewBox.width, 2 * this.yLength) * 2 * this.xLength;
+      const length = intDivide(this.maxZoom.height > this.maxZoom.width ?
+        this.maxZoom.height : this.maxZoom.width, 2 * this.yLength) * 2 * this.xLength;
       var pointPairs = [];
       /*Create diagonal point pairs starting at half a length(which is even) to the left.
         Length is the height of a right triangle, which is sqrt(3) times the base.
@@ -127,91 +129,121 @@
   }
 
 
-  /*Method moduleMenu
+  /*object moduleMenu
    *Parameters: null
-   *Description: install setMenu
+   *Description: install menu mode
    *Return: null
    */
   const moduleMenu = {
-    prepareProgram: function(program) {
+    necessities: function(program) {
       program.menu = createAndSetElement("g", program.staticSVG, program.nameSpace, {
         "class": "menu", "transform": `translate(${program.maxZoom.width * .25}, 0)`});
-      program.setMenu = this.setMenu;
       program.currentMode = "MENU";
-      program.setMenu();
     },
 
-    setMenu() {
-      const self = this;
+    preparation: function() {
+      //Retain this list to hide and show the menu
+      let toggleable = [createAndSetElement("rect", this.menu, this.nameSpace,
+        {"class": "menuBackground hideElement", "width": "50%", "height": "100%"})];
+      //create svg to store all to be made mode buttons
       let menuSVG = createAndSetElement("svg", this.menu, this.nameSpace, {
-        "class": "menu", "width": "50%"});
-
-      let toggleable = [createAndSetElement("rect", menuSVG, this.nameSpace,
-        {"class": "menuBackground hideElement", "width": "100%", "height": "100%"})];
-
-      const menuButton = createAndSetElement("g", menuSVG, this.nameSpace, {
+        "class": "menu", "width": "50%",
+        "viewBox": `0 0 ${this.maxZoom.width * .5} ${this.maxZoom.height * .9}`});
+      let menuViewBox = menuSVG.viewBox.baseVal;
+      //create open menu button
+      const menuButton = createAndSetElement("g", this.menu, this.nameSpace, {
         "transform": `translate(${this.maxZoom.width * .125}, ${this.maxZoom.height * .9})`});
       toggleable.push(menuButton);
-      createAndSetElement("rect", menuButton, this.nameSpace,
-        {"class": "menuBackground menuOption menuButtonHover", "width": "50%", "height": "10%"});
+      createAndSetElement("rect", menuButton, this.nameSpace, {"data-mode": "MENU",
+        "class": "menuBackground menuOption menuButtonHover", "width": "25%", "height": "10%"});
       createAndSetElement("text", menuButton, this.nameSpace,
-        {"class": "menuButtonText", 'x': "25%", 'y': "5%"}
+        {"class": "menuButtonText", 'x': "12.5%", 'y': "5%"}
       ).appendChild(document.createTextNode(this.currentMode));
-      //Inner button appearance, copy menu button and adjust values
+      //Create each mode button in menu
       for(let i = 0, iLen = this.modes.length; i < iLen; ++i) {
-        const menuOption = menuButton.cloneNode(true);
+        const menuOption = createAndSetElement("g", menuSVG, this.nameSpace, {
+          "class" :"hideElement", "transform": `translate(
+          ${this.maxZoom.width * .125}, ${this.maxZoom.height * (1 + i) * .15})`});
         toggleable.push(menuOption);
-        setAttributesNS(menuOption, null, {
-          "class": "hideElement", "transform": `translate(${this.maxZoom.width * .125},
-          ${this.maxZoom.height * (1 + i) * .15})`});
-        menuOption.childNodes[1].childNodes[0].nodeValue = this.modes[i];
-        menuSVG.appendChild(menuOption);
+        createAndSetElement("rect", menuOption, this.nameSpace, {"data-mode": this.modes[i],
+          "class": "menuBackground menuOption menuButtonHover", "width": "50%", "height": "10%"});
+        createAndSetElement("text", menuOption, this.nameSpace,
+          {"class": "menuButtonText", 'x': "25%", 'y': "5%"}
+          ).appendChild(document.createTextNode(this.modes[i]));
       }
 
+      const maxScroll = this.maxZoom.height * (this.modes.length - 4) * .15;
+
       this.menu.addEventListener("click", menuControl);
+      this.menu.addEventListener("mousedown", menuSlideStart);
+      this.menu.addEventListener("mousemove", menuSliding);
+      this.menu.addEventListener("mouseup", menuSlideEnd);
+      this.menu.addEventListener("mouseleave", menuSlideEnd);
+
+      const self = this;
+      let sliding = false;
+      let start = null;
 
       function menuControl(event) {
-        event.stopPropagation();
         if(!event.target.classList.contains("menuOption")) return null;
-        self.currentMode = event.target.parentElement.childNodes[1].childNodes[0].nodeValue;
+        self.currentMode = event.target.dataset.mode;
         menuButton.childNodes[1].childNodes[0].nodeValue = self.currentMode;
         for(const element of toggleable) element.classList.toggle("hideElement");
+      }
+      function menuSlideStart(event) {
+        //Prevent mousedown events on other SVGs
+        event.stopPropagation();
+        if(self.currentMode != "MENU") return null;
+        sliding = true;
+        start = transformToSVGPoint(menuSVG, event);
+      }
+      function menuSliding(event) {
+        if(sliding) {
+          let now = transformToSVGPoint(menuSVG, event);
+          let change = menuViewBox.y - (now.y - start.y);
+          //Make sure not to lose the mode buttons
+          if(change < 0) change = 0;
+          else if(change > maxScroll) change = maxScroll;
+          menuViewBox.y = change;
+          self.updateSVG();
+        }
+      }
+      function menuSlideEnd(event) {
+        sliding = false;
       }
     }
   };
 
 
-  /*Class moduleMove
+  /*object moduleMove
    *Parameters: null
-   *Description: install setMove
+   *Description: install move mode
    *Return: null
    */
   const moduleMove = {
-    prepareProgram: function(program) {
-      program.setMove = this.setMove;
+    necessities: function(program) {
       program.modes.push("MOVE");
-      program.setMove();
     },
 
-    setMove: function() {
+    preparation: function() {
       //Use closure to hold variables between eventListeners
       const self = this;
       let moving = false;
-      let start = {x: 0, y: 0};
+      let start = null;
 
-      this.staticSVG.addEventListener("mousedown", startMove);
-      this.staticSVG.addEventListener("mousemove", midMove);
-      this.staticSVG.addEventListener("mouseup", endMove);
-      this.staticSVG.addEventListener("mouseleave", endMove);
+      this.staticSVG.addEventListener("mousedown", gridMoveStart);
+      this.staticSVG.addEventListener("mousemove", gridMoving);
+      this.staticSVG.addEventListener("mouseup", gridMoveEnd);
+      this.staticSVG.addEventListener("mouseleave", gridMoveEnd);
 
-      function startMove(event) {
+      function gridMoveStart(event) {
         if(self.currentMode != "MOVE") return null;
         //Prevent accidental highlighting
         event.preventDefault();
         moving = true;
         start = transformToSVGPoint(self.scaledSVG, event);
       }
-      function midMove(event) {
+      function gridMoving(event) {
         if(moving) {
           let now = transformToSVGPoint(self.scaledSVG, event);
           self.viewBox.x -= (now.x - start.x);
@@ -219,59 +251,60 @@
           self.updateSVG();
         }
       }
-      function endMove(event) {
+      function gridMoveEnd(event) {
         moving = false;
       }
     }
   };
 
 
-  /*Method moduleZoom
+  /*Object moduleZoom
    *Parameter: null
-   *Description: install setZoom
+   *Description: install zoom mode
    *Return: null
    */
   const moduleZoom = {
-    prepareProgram: function(program) {
-      program.currentZoom = 1
-      program.setZoom = this.setZoom;
+    necessities: function(program) {
+      //.05 to 1 maxZoom
+      program.currentZoom = 1;
       program.modes.push("ZOOM");
-      program.setZoom();
     },
 
-    setZoom() {
+    preparation: function() {
       const self = this;
       let zooming = false;
       let start = 0;
 
-      this.staticSVG.addEventListener("mousedown", startZoom);
-      this.staticSVG.addEventListener("mousemove", midZoom);
-      this.staticSVG.addEventListener("mouseup", endZoom);
-      this.staticSVG.addEventListener("mouseleave", endZoom);
+      this.staticSVG.addEventListener("mousedown", gridZoomStart);
+      this.staticSVG.addEventListener("mousemove", gridZooming);
+      this.staticSVG.addEventListener("mouseup", gridZoomEnd);
+      this.staticSVG.addEventListener("mouseleave", gridZoomEnd);
 
+      //get distance from current screen center.
       function getDistanceFromSVGCenter(event) {
         const newPt = transformToSVGPoint(self.scaledSVG, event);
         return Math.hypot(newPt.x - (self.viewBox.x + self.viewBox.width / 2),
           newPt.y - (self.viewBox.y + self.viewBox.height / 2));
       }
-      function startZoom(event) {
+      function gridZoomStart(event) {
         if(self.currentMode != "ZOOM") return null;
         //Prevent accidental highlighting
         event.preventDefault();
         zooming = true;
         start = getDistanceFromSVGCenter(event);
       }
-      function midZoom(event) {
+      function gridZooming(event) {
         if(zooming) {
           let now = getDistanceFromSVGCenter(event);
-          //Zooming is negative.
           let hypotRatio = (now - start) / self.maxZoom.hypotenuse;
+          //Retain zoom bounds
           if(self.currentZoom - hypotRatio > 1) {
             hypotRatio = self.currentZoom - 1;
           } else if(self.currentZoom - hypotRatio < .05) {
             hypotRatio = self.currentZoom - .05;
           }
           self.currentZoom -= hypotRatio;
+          //Make sure to move viewBox while scaling to keep centered
           self.viewBox.x += self.maxZoom.width * hypotRatio / 2;
           self.viewBox.y += self.maxZoom.height * hypotRatio / 2;
           self.viewBox.width -= self.maxZoom.width * hypotRatio;
@@ -279,7 +312,7 @@
           self.updateSVG();
         }
       }
-      function endZoom(event) {
+      function gridZoomEnd(event) {
         zooming = false;
       }
     }
@@ -292,15 +325,13 @@
    *Return: null
    */
   const modulePoints = {
-    prepareProgram: function(program) {
+    necessities: function(program) {
       program.points = createAndSetElement("g", program.scaledSVG, program.nameSpace,
         {"class": "points"});
-      program.setPoints = this.setPoints;
       program.modes.push("ADD", "REMOVE");
-      program.setPoints();
     },
 
-    setPoints() {
+    preparation: function() {
       const self = this;
 
       this.staticSVG.addEventListener("mousedown", addPoints);
@@ -308,6 +339,7 @@
 
       function addPoints(event) {
         if(self.currentMode != "ADD") return null;
+        //convert mouse coordinates to svg coordinates to nearest grid coordinate.
         let newPt = transformToSVGPoint(self.scaledSVG, event);
         let yLengths = intDivide(newPt.y, self.yLength);
         let xLengths = Math.floor(newPt.x / self.xLength - yLengths / 2);
@@ -324,14 +356,14 @@
     }
   };
 
-  /*Object moduleCenterMarker
-   *Meant to add a circle at origin
-   *Modules don't have to be overly complex, sometimes qualty of life is nice.
+  /*bbject moduleCenterMarker
+   *Parameters: null
+   *Description: Add a circle to 0, 0 on the grid.
+   *return null
    */
   const moduleCenterMarker = {
-    prepareProgram: (program) => {
-      //Add center circle; will be above other elements
-      createAndSetElement("circle", program.scaledSVG, program.nameSpace,
+    preparation: function() {
+      createAndSetElement("circle", this.scaledSVG, this.nameSpace,
         {"class": "centerCircle", 'r': 2});
     }
   };
