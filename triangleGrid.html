@@ -55,6 +55,7 @@
     </div>
 
     <script src="triangleGrid.js"></script>
+    <script src="triangleGridBaseModules.js"></script>
 
     <script>
       //Hide anonymous function and variables from global space
@@ -65,8 +66,8 @@
 
         //create a grid class for every svg.
         for(let i = 0; i < allSVGs.length; i++) {
-          let options = [triGrid.moduleCenterMarker, triGrid.moduleMove,
-            triGrid.moduleZoom, triGrid.modulePoints, triGrid.moduleMenu];
+          let options = [modules.moduleCenterMarker, modules.moduleMove,
+            modules.moduleZoom, modules.modulePoints, modules.moduleMenu];
           //For background, in this case is the first svg
           if(!i) options = null;
           //Load svg 6 with no menuModule, so only radioManager down below can control.
