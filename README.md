@@ -36,6 +36,7 @@ moduleName = {
 ```
 
 #### Contributed Modules ####
+Please note that any modules that aren't hosted on this repository must use the gplv3 license, to protect the module maker.
 
 |Module|By|Description|Link|Compatability Issues|
 |---|---|---|---|---|
