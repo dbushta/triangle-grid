@@ -24,45 +24,45 @@
       program.currentMode = "MENU";
     },
 
-    preparation: function() {
+    preparation: function(program) {
       //Retain this list to hide and show the menu
-      let toggleable = [this.createAndSetElement("rect", this.menu,
+      let toggleable = [program.createAndSetElement("rect", program.menu,
         {"class": "menuBackground hideElement", "width": "50%", "height": "100%"})];
       //create svg to store all to be made mode buttons
-      let menuSVG = this.createAndSetElement("svg", this.menu, {"class": "menu", "width": "50%",
-        "viewBox": `0 0 ${this.maxZoom.width * .5} ${this.maxZoom.height * .9}`});
+      let menuSVG = program.createAndSetElement("svg", program.menu, {"class": "menu", "width": "50%",
+        "viewBox": `0 0 ${program.maxZoom.width * .5} ${program.maxZoom.height * .9}`});
       let menuViewBox = menuSVG.viewBox.baseVal;
       //create open menu button
-      const menuButton = this.createAndSetElement("g", this.menu, {
-        "transform": `translate(${this.maxZoom.width * .125}, ${this.maxZoom.height * .9})`});
+      const menuButton = program.createAndSetElement("g", program.menu, {
+        "transform": `translate(${program.maxZoom.width * .125}, ${program.maxZoom.height * .9})`});
       toggleable.push(menuButton);
-      this.createAndSetElement("rect", menuButton, {"data-mode": "MENU",
+      program.createAndSetElement("rect", menuButton, {"data-mode": "MENU",
         "class": "menuBackground menuOption menuButtonHover", "width": "25%", "height": "10%"});
-      this.createAndSetElement("text", menuButton,
+      program.createAndSetElement("text", menuButton,
         {"class": "menuButtonText", 'x': "12.5%", 'y': "5%"}
-      ).appendChild(document.createTextNode(this.currentMode));
+      ).appendChild(document.createTextNode(program.currentMode));
       //Create each mode button in menu
-      for(let i = 0, iLen = this.modes.length; i < iLen; ++i) {
-        const menuOption = this.createAndSetElement("g", menuSVG, {
+      for(let i = 0, iLen = program.modes.length; i < iLen; ++i) {
+        const menuOption = program.createAndSetElement("g", menuSVG, {
           "class" :"hideElement", "transform": `translate(
-          ${this.maxZoom.width * .125}, ${this.maxZoom.height * (1 + i) * .15})`});
+          ${program.maxZoom.width * .125}, ${program.maxZoom.height * (1 + i) * .15})`});
         toggleable.push(menuOption);
-        this.createAndSetElement("rect", menuOption, {"data-mode": this.modes[i],
+        program.createAndSetElement("rect", menuOption, {"data-mode": program.modes[i],
           "class": "menuBackground menuOption menuButtonHover", "width": "50%", "height": "10%"});
-        this.createAndSetElement("text", menuOption,
+        program.createAndSetElement("text", menuOption,
         {"class": "menuButtonText", 'x': "25%", 'y': "5%"}
-          ).appendChild(document.createTextNode(this.modes[i]));
+      ).appendChild(document.createTextNode(program.modes[i]));
       }
 
-      const maxScroll = this.maxZoom.height * (this.modes.length - 4) * .15;
+      const maxScroll = program.maxZoom.height * (program.modes.length - 4) * .15;
 
-      this.menu.addEventListener("click", menuControl);
-      this.menu.addEventListener("mousedown", menuSlideStart);
-      this.menu.addEventListener("mousemove", menuSliding);
-      this.menu.addEventListener("mouseup", menuSlideEnd);
-      this.menu.addEventListener("mouseleave", menuSlideEnd);
+      program.menu.addEventListener("click", menuControl);
+      program.menu.addEventListener("mousedown", menuSlideStart);
+      program.menu.addEventListener("mousemove", menuSliding);
+      program.menu.addEventListener("mouseup", menuSlideEnd);
+      program.menu.addEventListener("mouseleave", menuSlideEnd);
 
-      const self = this;
+      const self = program;
       let sliding = false;
       let start = null;
 
@@ -107,16 +107,16 @@
       program.modes.push("MOVE");
     },
 
-    preparation: function() {
+    preparation: function(program) {
       //Use closure to hold variables between eventListeners
-      const self = this;
+      const self = program;
       let moving = false;
       let start = null;
 
-      this.staticSVG.addEventListener("mousedown", gridMoveStart);
-      this.staticSVG.addEventListener("mousemove", gridMoving);
-      this.staticSVG.addEventListener("mouseup", gridMoveEnd);
-      this.staticSVG.addEventListener("mouseleave", gridMoveEnd);
+      program.staticSVG.addEventListener("mousedown", gridMoveStart);
+      program.staticSVG.addEventListener("mousemove", gridMoving);
+      program.staticSVG.addEventListener("mouseup", gridMoveEnd);
+      program.staticSVG.addEventListener("mouseleave", gridMoveEnd);
 
       function gridMoveStart(event) {
         if(self.currentMode != "MOVE") return null;
@@ -152,15 +152,15 @@
       program.modes.push("ZOOM");
     },
 
-    preparation: function() {
-      const self = this;
+    preparation: function(program) {
+      const self = program;
       let zooming = false;
       let start = 0;
 
-      this.staticSVG.addEventListener("mousedown", gridZoomStart);
-      this.staticSVG.addEventListener("mousemove", gridZooming);
-      this.staticSVG.addEventListener("mouseup", gridZoomEnd);
-      this.staticSVG.addEventListener("mouseleave", gridZoomEnd);
+      program.staticSVG.addEventListener("mousedown", gridZoomStart);
+      program.staticSVG.addEventListener("mousemove", gridZooming);
+      program.staticSVG.addEventListener("mouseup", gridZoomEnd);
+      program.staticSVG.addEventListener("mouseleave", gridZoomEnd);
 
       //get distance from current screen center.
       function getDistanceFromSVGCenter(event) {
@@ -212,11 +212,11 @@
       program.modes.push("ADD", "REMOVE");
     },
 
-    preparation: function() {
-      const self = this;
+    preparation: function(program) {
+      const self = program;
 
-      this.staticSVG.addEventListener("mousedown", addPoints);
-      this.staticSVG.addEventListener("mousedown", removePoints);
+      program.staticSVG.addEventListener("mousedown", addPoints);
+      program.staticSVG.addEventListener("mousedown", removePoints);
 
       function addPoints(event) {
         if(self.currentMode != "ADD") return null;
@@ -243,8 +243,8 @@
    *return null
    */
   const moduleCenterMarker = {
-    preparation: function() {
-      this.createAndSetElement("circle", this.scaledSVG, {"class": "centerCircle", 'r': 2});
+    preparation: function(program) {
+      program.createAndSetElement("circle", program.scaledSVG, {"class": "centerCircle", 'r': 2});
     }
   };
 

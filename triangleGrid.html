@@ -51,7 +51,7 @@
         </div>
       </section>
       </br>
-      <svg class="outLineBlock whiteBackground" height="300" viewBox="0 0 500 300"></svg>
+      <svg class="outLineBlock whiteBackground" id="noMenu" height="300" viewBox="0 0 500 300"></svg>
     </div>
 
     <script src="triangleGrid.js"></script>
@@ -63,6 +63,7 @@
         //Make a static node list, bc triangle Grid makes additional SVGs.
         var allSVGs = document.querySelectorAll("svg");
         var allGrids = [];
+        var noMenuSVG = null;
 
         //create a grid class for every svg.
         for(let i = 0; i < allSVGs.length; i++) {
@@ -71,14 +72,16 @@
           //For background, in this case is the first svg
           if(!i) options = null;
           //Load svg 6 with no menuModule, so only radioManager down below can control.
-          if(i == 6) options.pop();
+          if(allSVGs[i].id == "noMenu") {
+            noMenuSVG = i;
+            options.pop();
+          }
           allGrids.push(new triGrid.triangleGrid(allSVGs[i], !i ? 25 : 5, options));
         }
 
         //Go into grid class and change mode using closures
-        var radioManager = document.getElementById("radioManager");
-        radioManager.addEventListener("click", (event) => {
-          allGrids[6].currentMode = event.target.value;});
+        document.getElementById("radioManager").addEventListener("click", (event) => {
+          allGrids[noMenuSVG].currentMode = event.target.value;});
 
       })();//Comment this line and previous to unhide
 

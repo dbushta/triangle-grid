@@ -1,9 +1,9 @@
 (function(global, factory) {
-  if(typeof module !== "undefined" && typeof exports !== "undefined") {
+  if(typeof module !== "undefined" && typeof exports !== "undefined") {//Ceck if in Node.js
     factory(module.exports);
-  } else if(typeof define === "function") {
+  } else if(typeof define === "function") {//CHeck if importing with AMD
     define(["exports"], factory);
-  } else {
+  } else {//Through HTML script tag
     typeof globalThis !== "undefined" ? globalThis : global || self;
     factory(global.triGrid = global.triGrid || {});
   }
@@ -72,7 +72,7 @@
         if(module.hasOwnProperty("necessities")) module.necessities(this);
       }
       for(const module of this.modules) {
-        if(module.hasOwnProperty("preparation")) module.preparation.call(this);
+        if(module.hasOwnProperty("preparation")) module.preparation(this);
       }
     }
 
