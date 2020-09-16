@@ -81,16 +81,14 @@
       program.menu.addEventListener("touchend", menuSlideEnd);
       program.menu.addEventListener("touchcancel", menuSlideEnd);
 
-      const self = program;
       let sliding = false;
       let start = null;
 
       function menuControl(event) {
         let parentGroup = event.target.parentElement;
         if(!parentGroup.classList.contains("menuOption")) return null;
-        console.log(parentGroup.childNodes[1].nodeValue);
-        self.currentMode = parentGroup.childNodes[1].childNodes[0].nodeValue;
-        menuButton.childNodes[1].childNodes[0].nodeValue = self.currentMode;
+        program.currentMode = parentGroup.childNodes[1].childNodes[0].nodeValue;
+        menuButton.childNodes[1].childNodes[0].nodeValue = program.currentMode;
         for(const element of toggleable) {
           element.style.display = element.style.display == "none" ? "initial": "none";
         }
@@ -98,21 +96,21 @@
       function menuSlideStart(event) {
         //Prevent mousedown events on other SVGs
         event.stopPropagation();
-        if(self.currentMode != "MENU") return null;
+        if(program.currentMode != "MENU") return null;
         sliding = true;
         event = event.clientX ? event : event.touches[0];
-        start = self.transformToSVGPoint(menuSVG, event);
+        start = program.transformToSVGPoint(menuSVG, event);
       }
       function menuSliding(event) {
         if(sliding) {
           event = event.clientX ? event : event.touches[0];
-          let now = self.transformToSVGPoint(menuSVG, event);
+          let now = program.transformToSVGPoint(menuSVG, event);
           let change = menuViewBox.y - (now.y - start.y);
           //Make sure not to lose the mode buttons
           if(change < 0) change = 0;
           else if(change > maxScroll) change = maxScroll;
           menuViewBox.y = change;
-          self.updateSVG();
+          program.updateSVG();
         }
       }
       function menuSlideEnd(event) {
@@ -133,11 +131,6 @@
     },
 
     preparation: function(program) {
-      //Use closure to hold variables between eventListeners
-      const self = program;
-      let moving = false;
-      let start = null;
-
       program.staticSVG.addEventListener("mousedown", gridMoveStart);
       program.staticSVG.addEventListener("mousemove", gridMoving);
       program.staticSVG.addEventListener("mouseup", gridMoveEnd);
@@ -148,21 +141,25 @@
       program.staticSVG.addEventListener("touchend", gridMoveEnd);
       program.staticSVG.addEventListener("touchcancel", gridMoveEnd);
 
+      //Use closure to hold variables between eventListeners
+      let moving = false;
+      let start = null;
+
       function gridMoveStart(event) {
-        if(self.currentMode != "MOVE") return null;
+        if(program.currentMode != "MOVE") return null;
         //Prevent accidental highlighting
         event.preventDefault();
         moving = true;
         event = event.clientX ? event : event.touches[0];
-        start = self.transformToSVGPoint(self.scaledSVG, event);
+        start = program.transformToSVGPoint(program.scaledSVG, event);
       }
       function gridMoving(event) {
         if(moving) {
           event = event.clientX ? event : event.touches[0];
-          let now = self.transformToSVGPoint(self.scaledSVG, event);
-          self.viewBox.x -= (now.x - start.x);
-          self.viewBox.y -= (now.y - start.y);
-          self.updateSVG();
+          let now = program.transformToSVGPoint(program.scaledSVG, event);
+          program.viewBox.x -= (now.x - start.x);
+          program.viewBox.y -= (now.y - start.y);
+          program.updateSVG();
         }
       }
       function gridMoveEnd(event) {
@@ -185,10 +182,6 @@
     },
 
     preparation: function(program) {
-      const self = program;
-      let zooming = false;
-      let start = 0;
-
       program.staticSVG.addEventListener("mousedown", gridZoomStart);
       program.staticSVG.addEventListener("mousemove", gridZooming);
       program.staticSVG.addEventListener("mouseup", gridZoomEnd);
@@ -199,14 +192,17 @@
       program.staticSVG.addEventListener("touchend", gridZoomEnd);
       program.staticSVG.addEventListener("touchcancel", gridZoomEnd);
 
+      let zooming = false;
+      let start = 0;
+
       //get distance from current screen center.
       function getDistanceFromSVGCenter(event) {
-        const newPt = self.transformToSVGPoint(self.scaledSVG, event);
-        return Math.hypot(newPt.x - (self.viewBox.x + self.viewBox.width / 2),
-          newPt.y - (self.viewBox.y + self.viewBox.height / 2));
+        const newPt = program.transformToSVGPoint(program.scaledSVG, event);
+        return Math.hypot(newPt.x - (program.viewBox.x + program.viewBox.width / 2),
+          newPt.y - (program.viewBox.y + program.viewBox.height / 2));
       }
       function gridZoomStart(event) {
-        if(self.currentMode != "ZOOM") return null;
+        if(program.currentMode != "ZOOM") return null;
         //Prevent accidental highlighting
         event.preventDefault();
         zooming = true;
@@ -217,20 +213,20 @@
         if(zooming) {
           event = event.clientX ? event : event.touches[0];
           let now = getDistanceFromSVGCenter(event);
-          let hypotRatio = (now - start) / self.maxZoom.hypotenuse;
+          let hypotRatio = (now - start) / program.maxZoom.hypotenuse;
           //Retain zoom bounds
-          if(self.currentZoom - hypotRatio > 1) {
-            hypotRatio = self.currentZoom - 1;
-          } else if(self.currentZoom - hypotRatio < .05) {
-            hypotRatio = self.currentZoom - .05;
+          if(program.currentZoom - hypotRatio > 1) {
+            hypotRatio = program.currentZoom - 1;
+          } else if(program.currentZoom - hypotRatio < .05) {
+            hypotRatio = program.currentZoom - .05;
           }
-          self.currentZoom -= hypotRatio;
+          program.currentZoom -= hypotRatio;
           //Make sure to move viewBox while scaling to keep centered
-          self.viewBox.x += self.maxZoom.width * hypotRatio / 2;
-          self.viewBox.y += self.maxZoom.height * hypotRatio / 2;
-          self.viewBox.width -= self.maxZoom.width * hypotRatio;
-          self.viewBox.height -= self.maxZoom.height * hypotRatio;
-          self.updateSVG();
+          program.viewBox.x += program.maxZoom.width * hypotRatio / 2;
+          program.viewBox.y += program.maxZoom.height * hypotRatio / 2;
+          program.viewBox.width -= program.maxZoom.width * hypotRatio;
+          program.viewBox.height -= program.maxZoom.height * hypotRatio;
+          program.updateSVG();
         }
       }
       function gridZoomEnd(event) {
@@ -252,39 +248,37 @@
     },
 
     preparation: function(program) {
-      const self = program;
-
       program.staticSVG.addEventListener("mousedown", addPoints);
       program.staticSVG.addEventListener("mousedown", removePoints);
       program.staticSVG.addEventListener("touchstart", addPoints);
       program.staticSVG.addEventListener("touchstart", removePoints);
 
       function addPoints(event) {
-        if(self.currentMode != "ADD") return null;
+        if(program.currentMode != "ADD") return null;
         //convert mouse coordinates to svg coordinates to nearest grid coordinate.
         event = event.clientX ? event : event.touches[0];
-        let newPt = self.transformToSVGPoint(self.scaledSVG, event);
-        let yLengths = self.intDivide(newPt.y, self.yLength);
-        let xLengths = Math.floor(newPt.x / self.xLength - yLengths / 2);
+        const sVGPoint = program.transformToSVGPoint(program.scaledSVG, event);
+        const gridPoint = program.nearestGridPoint(sVGPoint);
+        const roundedSVGPoint = program.gridToSVGPoint(gridPoint);
 
-        let circle = self.createAndSetElement("circle", self.points,
-          {'r': '2', "cx": self.xLength * (xLengths + yLengths / 2),
-          "cy": yLengths * self.yLength, "class": "point"});
+        let circle = program.createAndSetElement("circle", program.points, {'r': '2',
+          "cx": roundedSVGPoint.x, "cy": roundedSVGPoint.y, "class": "point"});
         circle.style.fill = "white";
         circle.style.stroke = "black";
         circle.style.strokeWidth = 1;
-        self.points.appendChild(circle);
+        program.points.appendChild(circle);
       }
       function removePoints(event) {
-        if(self.currentMode != "REMOVE") return null;
+        if(program.currentMode != "REMOVE") return null;
         if(event.target.classList.contains("point")) event.target.remove();
       }
     }
   };
 
-  /*bbject moduleCenterMarker
+  /*object moduleCenterMarker
    *Parameters: null
-   *Description: Add a circle to 0, 0 on the grid.
+   *Description: Add a circle to 0, 0 on the grid
+   *  in preparation so itrenders above other elements.
    *return null
    */
   const moduleCenterMarker = {

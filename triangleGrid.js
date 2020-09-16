@@ -163,8 +163,8 @@
     }
 
     /*Method transformToSVGPoint
-     *Parameters: svg(svg element), point(event or object with x, y)
-     *Description: tke points and convert to svg coordinates
+     *Parameters: svg(svg element), point(event with clientX, clientY or object with x, y)
+     *Description: take point and convert to svg coordinates
      *Return: newly created point
      */
     transformToSVGPoint(svg, point) {
@@ -172,6 +172,25 @@
       svgPt.x = point.clientX || point.x;
       svgPt.y = point.clientY || point.y;
       return svgPt.matrixTransform(svg.getScreenCTM().inverse());
+    }
+
+    /*Method nearestGridPoint
+     *Parameters: SVG point(x, y)
+     *Description: take svg point and convert to grid coordinates
+     *Return: newly created point
+     */
+    nearestGridPoint(point) {
+      const y = this.intDivide(point.y, this.yLength);
+      return {y: y, x: Math.floor(point.x / this.xLength - y / 2)};
+    }
+
+    /*Method gridToSVGPoint
+     *Parameters: grid point(x, y)
+     *Description: take grid point and convert to svg coordinates
+     *Return: newly created point
+     */
+    gridToSVGPoint(point) {
+      return {x: this.xLength * (point.x + point.y / 2), y: point.y * this.yLength};
     }
   }
 

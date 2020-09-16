@@ -24,11 +24,22 @@ moduleName = {
   /*Method necessities is a constructor*/
   necessities: function(program) {
     //"program" refers to the triGrid instance
-    //program.modes.push("modeName");
-    //program.attributeName = attributeName;
+    /*Push to modes to add a new Mode
+    program.modes.push("modeName");
+    //Change or add necessary attributes to triGrid
+    program.attributeName = attributeName;
+    */
   },
   preparation: function(program) {
     //"program" refers to the triGrid instance.
+    /*Optional: Adding a mode by eventHandler.
+    elementName.addEventListener("eventName", eventHandlerName);
+    function eventHandlerName(eventName) {
+      //Make sure to run when its in the right mode.
+      if(program.currentMode != "modeName") return null;
+        //Do stuff
+    }
+    */
   }
 };
 ```
