@@ -70,10 +70,16 @@
       const maxScroll = program.maxZoom.height * (program.modes.length - 4) * .15;
 
       program.menu.addEventListener("click", menuControl);
+
       program.menu.addEventListener("mousedown", menuSlideStart);
       program.menu.addEventListener("mousemove", menuSliding);
       program.menu.addEventListener("mouseup", menuSlideEnd);
       program.menu.addEventListener("mouseleave", menuSlideEnd);
+
+      program.menu.addEventListener("touchstart", menuSlideStart);
+      program.menu.addEventListener("touchmove", menuSliding);
+      program.menu.addEventListener("touchend", menuSlideEnd);
+      program.menu.addEventListener("touchcancel", menuSlideEnd);
 
       const self = program;
       let sliding = false;
@@ -94,10 +100,12 @@
         event.stopPropagation();
         if(self.currentMode != "MENU") return null;
         sliding = true;
+        event = event.hasOwnProperty("clientX") ? event : event.touches[0];
         start = self.transformToSVGPoint(menuSVG, event);
       }
       function menuSliding(event) {
         if(sliding) {
+          event = event.hasOwnProperty("clientX") ? event : event.touches[0];
           let now = self.transformToSVGPoint(menuSVG, event);
           let change = menuViewBox.y - (now.y - start.y);
           //Make sure not to lose the mode buttons
@@ -140,10 +148,12 @@
         //Prevent accidental highlighting
         event.preventDefault();
         moving = true;
+        event = event.hasOwnProperty("clientX") ? event : event.touches[0];
         start = self.transformToSVGPoint(self.scaledSVG, event);
       }
       function gridMoving(event) {
         if(moving) {
+          event = event.hasOwnProperty("clientX") ? event : event.touches[0];
           let now = self.transformToSVGPoint(self.scaledSVG, event);
           self.viewBox.x -= (now.x - start.x);
           self.viewBox.y -= (now.y - start.y);
@@ -190,10 +200,12 @@
         //Prevent accidental highlighting
         event.preventDefault();
         zooming = true;
+        event = event.hasOwnProperty("clientX") ? event : event.touches[0];
         start = getDistanceFromSVGCenter(event);
       }
       function gridZooming(event) {
         if(zooming) {
+          event = event.hasOwnProperty("clientX") ? event : event.touches[0];
           let now = getDistanceFromSVGCenter(event);
           let hypotRatio = (now - start) / self.maxZoom.hypotenuse;
           //Retain zoom bounds
@@ -238,6 +250,7 @@
       function addPoints(event) {
         if(self.currentMode != "ADD") return null;
         //convert mouse coordinates to svg coordinates to nearest grid coordinate.
+        event = event.hasOwnProperty("clientX") ? event : event.touches[0];
         let newPt = self.transformToSVGPoint(self.scaledSVG, event);
         let yLengths = self.intDivide(newPt.y, self.yLength);
         let xLengths = Math.floor(newPt.x / self.xLength - yLengths / 2);
