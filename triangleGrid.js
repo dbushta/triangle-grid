@@ -110,8 +110,10 @@
       }
       //Take created point pairs to make lines
       for(const pair of pointPairs) {
-        this.createAndSetElement("line", this.grid, {"class": "gridLine",
+        let line = this.createAndSetElement("line", this.grid, {
           "x1": pair.p1.x, "x2": pair.p2.x, "y1": pair.p1.y, "y2": pair.p2.y});
+        line.style.stroke = "black";
+        line.style.strokeWidth = .5;
       }
     }
 

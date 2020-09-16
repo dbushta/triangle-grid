@@ -8,9 +8,7 @@
   - License
 
 ### Installation ###
-The css is necessary for the code to function.
 If you have the code locally, just use: `<script src="triangleGrid.js"></script>` in the body.</br>
-and: `<link rel="stylesheet" href="triangleGrid.css">` in the head.</br>
 The code should be importable through node and AMD(testing still)</br>
 
 ### Usage ###
@@ -36,7 +34,7 @@ moduleName = {
 ```
 
 #### Contributed Modules ####
-Please note that any modules that aren't hosted on this repository must use the gplv3 license, to protect the module maker.
+Please note that any modules that aren't hosted on this repository must use the GNU General Public License v3.0 license, to protect the module maker.
 
 |Module|By|Description|Link|Compatability Issues|
 |---|---|---|---|---|
@@ -47,3 +45,4 @@ and inspired the project. So far:</br>
   - [Chris Till](https://github.com/chri55): markdown, ux
 
 ### License ###
+GNU General Public License v3.0

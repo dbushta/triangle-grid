@@ -28,30 +28,43 @@
       //Retain this list to hide and show the menu
       let toggleable = [program.createAndSetElement("rect", program.menu,
         {"class": "menuBackground hideElement", "width": "50%", "height": "100%"})];
+      toggleable[0].style.fill = "#f0f8ffa0";
+      toggleable[0].style.display = "initial";
       //create svg to store all to be made mode buttons
-      let menuSVG = program.createAndSetElement("svg", program.menu, {"class": "menu", "width": "50%",
-        "viewBox": `0 0 ${program.maxZoom.width * .5} ${program.maxZoom.height * .9}`});
+      let menuSVG = program.createAndSetElement("svg", program.menu,
+        {"class": "menu", "width": "50%", "viewBox": `0 0 ${program.maxZoom.width * .5}
+        ${program.maxZoom.height * .9}`, "class": "menuOption"});
       let menuViewBox = menuSVG.viewBox.baseVal;
       //create open menu button
-      const menuButton = program.createAndSetElement("g", program.menu, {
+      const menuButton = program.createAndSetElement("g", program.menu, {"class": "menuOption",
         "transform": `translate(${program.maxZoom.width * .125}, ${program.maxZoom.height * .9})`});
+      menuButton.style.display = "none";
       toggleable.push(menuButton);
-      program.createAndSetElement("rect", menuButton, {"data-mode": "MENU",
-        "class": "menuBackground menuOption menuButtonHover", "width": "25%", "height": "10%"});
-      program.createAndSetElement("text", menuButton,
-        {"class": "menuButtonText", 'x': "12.5%", 'y': "5%"}
-      ).appendChild(document.createTextNode(program.currentMode));
+      let menuRect = program.createAndSetElement("rect", menuButton, {"data-mode": "MENU",
+        "class": "menuBackground menuButtonHover", "width": "25%", "height": "10%"});
+      menuRect.style.fill = "#f0f8ffa0";
+      let menuText = program.createAndSetElement("text", menuButton,
+        {"class": "menuButtonText", 'x': "12.5%", 'y': "5%"});
+      menuText.appendChild(document.createTextNode(program.currentMode));
+      menuText.style.fill = "#ffffff";
+      menuText.style.dominantBaseline = "middle";
+      menuText.style.textAnchor = "middle";
       //Create each mode button in menu
       for(let i = 0, iLen = program.modes.length; i < iLen; ++i) {
         const menuOption = program.createAndSetElement("g", menuSVG, {
-          "class" :"hideElement", "transform": `translate(
+          "class" :"menuOption", "transform": `translate(
           ${program.maxZoom.width * .125}, ${program.maxZoom.height * (1 + i) * .15})`});
         toggleable.push(menuOption);
-        program.createAndSetElement("rect", menuOption, {"data-mode": program.modes[i],
-          "class": "menuBackground menuOption menuButtonHover", "width": "50%", "height": "10%"});
-        program.createAndSetElement("text", menuOption,
-        {"class": "menuButtonText", 'x': "25%", 'y': "5%"}
-      ).appendChild(document.createTextNode(program.modes[i]));
+        let optionRect = program.createAndSetElement("rect", menuOption, {
+          "class": "menuBackground menuButtonHover", "width": "50%", "height": "10%"});
+        optionRect.style.fill = "#f0f8ffa0";
+        optionRect.style.display = "initial";
+        let optionText = program.createAndSetElement("text", menuOption,
+          {"class": "menuButtonText", 'x': "25%", 'y': "5%"});
+        optionText.style.fill = "#ffffff";
+        optionText.appendChild(document.createTextNode(program.modes[i]));
+        optionText.style.dominantBaseline= "middle";
+        optionText.style.textAnchor = "middle";
       }
 
       const maxScroll = program.maxZoom.height * (program.modes.length - 4) * .15;
@@ -67,10 +80,14 @@
       let start = null;
 
       function menuControl(event) {
-        if(!event.target.classList.contains("menuOption")) return null;
-        self.currentMode = event.target.dataset.mode;
+        let parentGroup = event.target.parentElement;
+        if(!parentGroup.classList.contains("menuOption")) return null;
+        console.log(parentGroup.childNodes[1].nodeValue);
+        self.currentMode = parentGroup.childNodes[1].childNodes[0].nodeValue;
         menuButton.childNodes[1].childNodes[0].nodeValue = self.currentMode;
-        for(const element of toggleable) element.classList.toggle("hideElement");
+        for(const element of toggleable) {
+          element.style.display = element.style.display == "none" ? "initial": "none";
+        }
       }
       function menuSlideStart(event) {
         //Prevent mousedown events on other SVGs
@@ -228,6 +245,9 @@
         let circle = self.createAndSetElement("circle", self.points,
           {'r': '2', "cx": self.xLength * (xLengths + yLengths / 2),
           "cy": yLengths * self.yLength, "class": "point"});
+        circle.style.fill = "white";
+        circle.style.stroke = "black";
+        circle.style.strokeWidth = 1;
         self.points.appendChild(circle);
       }
       function removePoints(event) {
@@ -244,7 +264,11 @@
    */
   const moduleCenterMarker = {
     preparation: function(program) {
-      program.createAndSetElement("circle", program.scaledSVG, {"class": "centerCircle", 'r': 2});
+      let center = program.createAndSetElement("circle", program.scaledSVG,
+        {"class": "centerCircle", 'r': 2});
+      center.style.fill = "red";
+      center.style.stroke = "black";
+      center.style.strokeWidth = 1;
     }
   };
 
