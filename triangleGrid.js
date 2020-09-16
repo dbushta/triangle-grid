@@ -59,10 +59,9 @@
         height: dimensions.height,
         hypotenuse: Math.hypot(dimensions.height, dimensions.width)};
       //Center the grid
-      this.staticSVG.setAttributeNS(null, "viewBox",
-        `0 0 ${dimensions.width} ${dimensions.height}`);
-      this.scaledSVG.setAttributeNS(null, "viewBox",
-        `0 0 ${dimensions.width} ${dimensions.height}`);
+      const viewBoxString = `0 0 ${dimensions.width} ${dimensions.height}`;
+      this.staticSVG.setAttributeNS(null, "viewBox", viewBoxString);
+      this.scaledSVG.setAttributeNS(null, "viewBox", viewBoxString);
       this.viewBox = this.scaledSVG.viewBox.baseVal;
       this.viewBox.width = dimensions.width;
       this.viewBox.height = dimensions.height;
