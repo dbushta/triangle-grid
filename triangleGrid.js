@@ -33,7 +33,7 @@
       this.xLength = triangleSideLength;
       /*Height of one triangle*/
       this.yLength = Math.sqrt(3) * this.xLength / 2;
-      this.viewBox = this.scaledSVG.viewBox.baseVal;
+      this.viewBox = null;
       this.maxZoom = null;
       /*modes for module controls*/
       this.modes = [];
@@ -61,6 +61,9 @@
       //Center the grid
       this.staticSVG.setAttributeNS(null, "viewBox",
         `0 0 ${dimensions.width} ${dimensions.height}`);
+      this.scaledSVG.setAttributeNS(null, "viewBox",
+        `0 0 ${dimensions.width} ${dimensions.height}`);
+      this.viewBox = this.scaledSVG.viewBox.baseVal;
       this.viewBox.width = dimensions.width;
       this.viewBox.height = dimensions.height;
       this.viewBox.x -= dimensions.width / 2;
