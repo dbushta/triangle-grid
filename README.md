@@ -51,9 +51,10 @@ Please note that any modules that aren't hosted on this repository must use the 
 |---|---|---|---|---|
 
 ### Credits ###
-Waiting to receive permission to include the names of people who helped me learn javascript,</br>
-and inspired the project. So far:</br>
-  - [Chris Till](https://github.com/chri55): markdown, ux
+Waiting to receive permission to include the names of people who helped me learn javascript</br>
+So far:</br>
+  - [Aayush Yadav](https://github.com/aayux): inspiration for project
+  - [Chris Till](https://github.com/chri55): markdown, ux, tester
 
 ### License ###
 GNU General Public License v3.0

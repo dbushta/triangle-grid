@@ -166,14 +166,28 @@
 
     /*Method transformToSVGPoint
      *Parameters: svg(svg element), point(event with clientX, clientY or object with x, y)
-     *Description: take point and convert to svg coordinates
+     *Description: take point and convert to svg coordinates, by applying each parent svg viewbox
      *Return: newly created point
      */
     transformToSVGPoint(svg, point) {
-      var svgPt = svg.createSVGPoint();
+      let svgPt = svg.createSVGPoint();
       svgPt.x = point.clientX || point.x;
       svgPt.y = point.clientY || point.y;
-      return svgPt.matrixTransform(svg.getScreenCTM().inverse());
+      let outerSVGs = [];
+      while(svg) {
+        if(svg.tagName.toLowerCase() == "svg") outerSVGs.push(svg);
+        svg = svg.parentElement;
+      }
+      //will always be the static svg
+      let newPt = svgPt.matrixTransform(outerSVGs.pop().getScreenCTM().inverse());
+      while(outerSVGs.length > 0) {
+        const nextSVG = outerSVGs.pop().viewBox.baseVal;
+        newPt.x *= nextSVG.width / this.maxZoom.width;
+        newPt.y *= nextSVG.height / this.maxZoom.height;
+        newPt.x += nextSVG.x;
+        newPt.y += nextSVG.y;
+      }
+      return newPt;
     }
 
     /*Method nearestGridPoint

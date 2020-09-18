@@ -98,21 +98,13 @@
         event.stopPropagation();
         if(program.currentMode != "MENU") return null;
         sliding = true;
-        event = event.clientX ? event : event.touches[0];
+        event = event.type == "mousedown" ? event : event.touches[0];
         start = program.transformToSVGPoint(program.staticSVG, event);
-        start.x *= menuViewBox.width / program.maxZoom.width;
-        start.y *= menuViewBox.height / program.maxZoom.height;
-        start.x += menuViewBox.x;
-        start.y += menuViewBox.y;
       }
       function menuSliding(event) {
         if(sliding) {
-          event = event.clientX ? event : event.touches[0];
+          event = event.type == "mousemove" ? event : event.touches[0];
           let now = program.transformToSVGPoint(program.staticSVG, event);
-          now.x *= menuViewBox.width / program.maxZoom.width;
-          now.y *= menuViewBox.height / program.maxZoom.height;
-          now.x += menuViewBox.x;
-          now.y += menuViewBox.y;
           let change = menuViewBox.y - (now.y - start.y);
           //Make sure not to lose the mode buttons
           if(change < 0) change = 0;
@@ -158,21 +150,13 @@
         //Prevent accidental highlighting
         event.preventDefault();
         moving = true;
-        event = event.clientX ? event : event.touches[0];
-        start = program.transformToSVGPoint(program.staticSVG, event);
-        start.x *= program.viewBox.width / program.maxZoom.width;
-        start.y *= program.viewBox.height / program.maxZoom.height;
-        start.x += program.viewBox.x;
-        start.y += program.viewBox.y;
+        event = event.type == "mousedown" ? event : event.touches[0];
+        start = program.transformToSVGPoint(program.scaledSVG, event);
       }
       function gridMoving(event) {
         if(moving) {
-          event = event.clientX ? event : event.touches[0];
-          let now = program.transformToSVGPoint(program.staticSVG, event);
-          now.x *= program.viewBox.width / program.maxZoom.width;
-          now.y *= program.viewBox.height / program.maxZoom.height;
-          now.x += program.viewBox.x;
-          now.y += program.viewBox.y;
+          event = event.type == "mousemove" ? event : event.touches[0];
+          let now = program.transformToSVGPoint(program.scaledSVG, event);
           program.viewBox.x -= (now.x - start.x);
           program.viewBox.y -= (now.y - start.y);
           program.updateSVG();
@@ -213,11 +197,7 @@
 
       //get distance from current screen center.
       function getDistanceFromSVGCenter(event) {
-        const newPt = program.transformToSVGPoint(program.staticSVG, event);
-        newPt.x *= program.viewBox.width / program.maxZoom.width;
-        newPt.y *= program.viewBox.height / program.maxZoom.height;
-        newPt.x += program.viewBox.x;
-        newPt.y += program.viewBox.y;
+        const newPt = program.transformToSVGPoint(program.scaledSVG, event);
         return Math.hypot(newPt.x - (program.viewBox.x + program.viewBox.width / 2),
           newPt.y - (program.viewBox.y + program.viewBox.height / 2));
       }
@@ -226,12 +206,12 @@
         //Prevent accidental highlighting
         event.preventDefault();
         zooming = true;
-        event = event.clientX ? event : event.touches[0];
+        event = event.type == "mousedown" ? event : event.touches[0];
         start = getDistanceFromSVGCenter(event);
       }
       function gridZooming(event) {
         if(zooming) {
-          event = event.clientX ? event : event.touches[0];
+          event = event.type == "mousemove" ? event : event.touches[0];
           let now = getDistanceFromSVGCenter(event);
           let hypotRatio = (now - start) / program.maxZoom.hypotenuse;
           //Retain zoom bounds
@@ -277,12 +257,8 @@
       function addPoints(event) {
         if(program.currentMode != "ADD") return null;
         //convert mouse coordinates to svg coordinates to nearest grid coordinate.
-        event = event.clientX ? event : event.touches[0];
-        const sVGPoint = program.transformToSVGPoint(program.staticSVG, event);
-        sVGPoint.x *= program.viewBox.width / program.maxZoom.width;
-        sVGPoint.y *= program.viewBox.height / program.maxZoom.height;
-        sVGPoint.x += program.viewBox.x;
-        sVGPoint.y += program.viewBox.y;
+        event = event.type == "mousedown" ? event : event.touches[0];
+        const sVGPoint = program.transformToSVGPoint(program.scaledSVG, event);
         const gridPoint = program.nearestGridPoint(sVGPoint);
         const roundedSVGPoint = program.gridToSVGPoint(gridPoint);
 
