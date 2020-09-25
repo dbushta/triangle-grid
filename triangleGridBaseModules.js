@@ -19,49 +19,51 @@
    */
   const moduleMenu = {
     necessities: function(program) {
-      program.menu = program.createAndSetElement("g", program.staticSVG, {
-        "class": "menu", "transform": `translate(${program.maxZoom.width * .25}, 0)`});
+      program.modes.push("MENU");
+      //Create an outside group, to separate the menuButton and Menu
+      const menuGroup = program.createAndSetElement("g", program.staticSVG, {id: "menuGroup"});
+      program.modeMenus["MENU"] = program.createAndSetElement("g", menuGroup, {
+        id: "menuMenu", transform: `translate(${program.maxZoom.width * .25}, 0)`});
       program.currentMode = "MENU";
     },
 
     preparation: function(program) {
+      let entireGroup = program.staticSVG.getElementById("menuGroup");
       //Retain this list to hide and show the menu
-      let toggleable = [program.createAndSetElement("rect", program.menu,
-        {"class": "menuBackground hideElement", "width": "50%", "height": "100%"})];
-      toggleable[0].style.fill = "#f0f8ffa0";
-      toggleable[0].style.display = "initial";
+      let menuBackground = program.createAndSetElement("rect", program.modeMenus["MENU"],
+        {class: "menuBackground hideElement", width: "50%", height: "100%", style: "fill: #f0f8ffa0"});
+
       //create svg to store all to be made mode buttons
-      let menuSVG = program.createAndSetElement("svg", program.menu,
-        {"class": "menu", "width": "50%", "viewBox": `0 0 ${program.maxZoom.width * .5}
-        ${program.maxZoom.height * .9}`, "class": "menuOption"});
+      let menuSVG = program.createAndSetElement("svg", program.modeMenus["MENU"],
+        {class: "menu", width: "50%", viewBox: `0 0 ${program.maxZoom.width * .5}
+        ${program.maxZoom.height * .9}`, class: "menuOption"});
       let menuViewBox = menuSVG.viewBox.baseVal;
+
       //create open menu button
-      const menuButton = program.createAndSetElement("g", program.menu, {"class": "menuOption",
-        "transform": `translate(${program.maxZoom.width * .125}, ${program.maxZoom.height * .9})`});
-      menuButton.style.display = "none";
-      toggleable.push(menuButton);
-      let menuRect = program.createAndSetElement("rect", menuButton, {"data-mode": "MENU",
-        "class": "menuBackground menuButtonHover", "width": "25%", "height": "10%"});
-      menuRect.style.fill = "#f0f8ffa0";
+      const menuButton = program.createAndSetElement("g", entireGroup,
+        {class: "menuButton menuOption", "data-mode": "MENU", style: "display: none",
+        transform: `translate(${program.maxZoom.width * .375}, ${program.maxZoom.height * .9})`});
+      let menuRect = program.createAndSetElement("rect", menuButton, {
+        class: "menuBackground menuButtonHover",
+        width: "25%", height: "10%", style: "fill: #f0f8ffa0"});
       let menuText = program.createAndSetElement("text", menuButton,
-        {"class": "menuButtonText", 'x': "12.5%", 'y': "5%"});
+        {class: "menuButtonText", x: "12.5%", y: "5%", style: "fill: #ffffff"});
       menuText.appendChild(document.createTextNode(program.currentMode));
-      menuText.style.fill = "#ffffff";
       menuText.style.dominantBaseline = "middle";
       menuText.style.textAnchor = "middle";
+
       //Create each mode button in menu
       for(let i = 0, iLen = program.modes.length; i < iLen; ++i) {
+        //MENU is reserved to activating the menu
+        if(program.modes[i] == "MENU") continue;
         const menuOption = program.createAndSetElement("g", menuSVG, {
-          "class" :"menuOption", "transform": `translate(
+          "data-mode": program.modes[i], "class" :"menuOption", "transform": `translate(
           ${program.maxZoom.width * .125}, ${program.maxZoom.height * (1 + i) * .15})`});
-        toggleable.push(menuOption);
-        let optionRect = program.createAndSetElement("rect", menuOption, {
-          "class": "menuBackground menuButtonHover", "width": "50%", "height": "10%"});
+        let optionRect = program.createAndSetElement("rect", menuOption,
+          {class: "menuBackground menuButtonHover", width: "50%", height: "10%"});
         optionRect.style.fill = "#f0f8ffa0";
-        optionRect.style.display = "initial";
         let optionText = program.createAndSetElement("text", menuOption,
-          {"class": "menuButtonText", 'x': "25%", 'y': "5%"});
-        optionText.style.fill = "#ffffff";
+          {class: "menuButtonText", x: "25%", y: "5%", style: "fill: #ffffff"});
         optionText.appendChild(document.createTextNode(program.modes[i]));
         optionText.style.dominantBaseline= "middle";
         optionText.style.textAnchor = "middle";
@@ -69,17 +71,11 @@
 
       const maxScroll = program.maxZoom.height * (program.modes.length - 4) * .15;
 
-      program.menu.addEventListener("click", menuControl);
-
-      program.menu.addEventListener("mousedown", menuSlideStart);
-      program.menu.addEventListener("mousemove", menuSliding);
-      program.menu.addEventListener("mouseup", menuSlideEnd);
-      program.menu.addEventListener("mouseleave", menuSlideEnd);
-
-      program.menu.addEventListener("touchstart", menuSlideStart);
-      program.menu.addEventListener("touchmove", menuSliding);
-      program.menu.addEventListener("touchend", menuSlideEnd);
-      program.menu.addEventListener("touchcancel", menuSlideEnd);
+      program.addEventListeners(entireGroup, [{type: "click", handler: menuControl},
+        {type: "mousedown", handler: menuSlideStart}, {type: "mousemove", handler: menuSliding},
+        {type: "mouseup", handler: menuSlideEnd}, {type: "mouseleave", handler: menuSlideEnd},
+        {type: "touchstart", handler: menuSlideStart}, {type: "touchmove", handler: menuSliding},
+        {type: "touchend", handler: menuSlideEnd}, {type: "touchcancel", handler: menuSlideEnd}]);
 
       let sliding = false;
       let start = null;
@@ -87,10 +83,14 @@
       function menuControl(event) {
         let parentGroup = event.target.parentElement;
         if(!parentGroup.classList.contains("menuOption")) return null;
-        program.currentMode = parentGroup.childNodes[1].childNodes[0].nodeValue;
+        if(program.modeMenus[program.currentMode]) {
+          program.modeMenus[program.currentMode].style.display = "none";
+        }
+        program.currentMode = parentGroup.dataset.mode;
         menuButton.childNodes[1].childNodes[0].nodeValue = program.currentMode;
-        for(const element of toggleable) {
-          element.style.display = element.style.display == "none" ? "initial": "none";
+        menuButton.style.display = program.currentMode == "MENU" ? "none" : "block";
+        if(program.modeMenus[program.currentMode]) {
+          program.modeMenus[program.currentMode].style.display = "block";
         }
       }
       function menuSlideStart(event) {
@@ -128,18 +128,15 @@
   const moduleMove = {
     necessities: function(program) {
       program.modes.push("MOVE");
+      program.modeMenus["MOVE"] = null;
     },
 
     preparation: function(program) {
-      program.staticSVG.addEventListener("mousedown", gridMoveStart);
-      program.staticSVG.addEventListener("mousemove", gridMoving);
-      program.staticSVG.addEventListener("mouseup", gridMoveEnd);
-      program.staticSVG.addEventListener("mouseleave", gridMoveEnd);
-
-      program.staticSVG.addEventListener("touchstart", gridMoveStart);
-      program.staticSVG.addEventListener("touchmove", gridMoving);
-      program.staticSVG.addEventListener("touchend", gridMoveEnd);
-      program.staticSVG.addEventListener("touchcancel", gridMoveEnd);
+      program.addEventListeners(program.staticSVG, [
+        {type: "mousedown", handler: gridMoveStart}, {type: "mousemove", handler: gridMoving},
+        {type: "mouseup", handler: gridMoveEnd}, {type: "mouseleave", handler: gridMoveEnd},
+        {type: "touchstart", handler: gridMoveStart},{type: "touchmove", handler: gridMoving},
+        {type: "touchend", handler: gridMoveEnd}, {type: "touchcancel", handler: gridMoveEnd}]);
 
       //Use closure to hold variables between eventListeners
       let moving = false;
@@ -179,18 +176,15 @@
       //.05 to 1 maxZoom
       program.currentZoom = 1;
       program.modes.push("ZOOM");
+      program.modeMenus["ZOOM"] = null;
     },
 
     preparation: function(program) {
-      program.staticSVG.addEventListener("mousedown", gridZoomStart);
-      program.staticSVG.addEventListener("mousemove", gridZooming);
-      program.staticSVG.addEventListener("mouseup", gridZoomEnd);
-      program.staticSVG.addEventListener("mouseleave", gridZoomEnd);
-
-      program.staticSVG.addEventListener("touchstart", gridZoomStart);
-      program.staticSVG.addEventListener("touchmove", gridZooming);
-      program.staticSVG.addEventListener("touchend", gridZoomEnd);
-      program.staticSVG.addEventListener("touchcancel", gridZoomEnd);
+      program.addEventListeners(program.staticSVG, [
+        {type: "mousedown", handler: gridZoomStart}, {type: "mousemove", handler: gridZooming},
+        {type: "mouseup", handler: gridZoomEnd}, {type: "mouseleave", handler: gridZoomEnd},
+        {type: "touchstart", handler: gridZoomStart}, {type: "touchmove", handler: gridZooming},
+        {type: "touchend", handler: gridZoomEnd}, {type: "touchcancel", handler: gridZoomEnd}]);
 
       let zooming = false;
       let start = 0;
@@ -243,16 +237,16 @@
    */
   const modulePoints = {
     necessities: function(program) {
-      program.points = program.createAndSetElement("g", program.scaledSVG, {"class": "points"});
+      program.points = program.createAndSetElement("g", program.scaledSVG, {"class": "pointGroup"});
       program.modes.push("ADD", "REMOVE");
-      program.currentMode = "ADD";
+      program.modeMenus["ADD"] = null;
+      program.modeMenus["REMOVE"] = null;
     },
 
     preparation: function(program) {
-      program.staticSVG.addEventListener("mousedown", addPoints);
-      program.staticSVG.addEventListener("mousedown", removePoints);
-      program.staticSVG.addEventListener("touchstart", addPoints);
-      program.staticSVG.addEventListener("touchstart", removePoints);
+      program.addEventListeners(program.staticSVG, [
+        {type: "mousedown", handler: addPoints}, {type: "mousedown", handler: removePoints},
+        {type: "touchstart", handler: addPoints}, {type: "touchstart", handler: removePoints}]);
 
       function addPoints(event) {
         if(program.currentMode != "ADD") return null;
@@ -262,11 +256,9 @@
         const gridPoint = program.nearestGridPoint(sVGPoint);
         const roundedSVGPoint = program.gridToSVGPoint(gridPoint);
 
-        let circle = program.createAndSetElement("circle", program.points, {'r': '2',
-          "cx": roundedSVGPoint.x, "cy": roundedSVGPoint.y, "class": "point"});
-        circle.style.fill = "white";
-        circle.style.stroke = "black";
-        circle.style.strokeWidth = 1;
+        let circle = program.createAndSetElement("circle", program.points, {r: '2',
+          cx: roundedSVGPoint.x, cy: roundedSVGPoint.y, class: "point",
+          style: "fill: white; stroke: black; strokeWidth: 1"});
         program.points.appendChild(circle);
       }
       function removePoints(event) {
@@ -285,7 +277,7 @@
   const moduleCenterMarker = {
     preparation: function(program) {
       let center = program.createAndSetElement("circle", program.scaledSVG,
-        {"class": "centerCircle", 'r': 2});
+        {class: "centerCircle", r: 2});
       center.style.fill = "red";
       center.style.stroke = "black";
       center.style.strokeWidth = 1;

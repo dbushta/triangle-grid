@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Triangle Grid Example</title>
     <style>
-      .background {
+      .backgroundSVG {
         height: 100%;
         width: 100%;
         position: fixed;
@@ -59,12 +59,14 @@
         pointer-events: none;
       }
     </style>
+    <script src="triangleGrid.js"></script>
+    <script src="triangleGridBaseModules.js"></script>
   </head>
   <body>
     <!--Background should have preserveAspectRatio-->
-    <svg class="background" preserveAspectRatio="xMinYMin slice"></svg>
+    <svg class="backgroundSVG" preserveAspectRatio="xMinYMin slice"></svg>
     <!--Apply this div's classes to everything inside it-->
-    <div class="center noHighlight">
+    <div class="showCaseSVGs center noHighlight">
       <header class="outLineBlock blueBackground">
         <h1>This page is meant to showcase the code in action.</h1>
         <h4>Note: zoom works by pulling towards or away from center,</br>
@@ -83,37 +85,40 @@
         </details>
       </header>
 
-      <!--No sections allowing window to affect svg directly-->
-      <h2 class="outLineBlock blueBackground">SVG has height and width in pixels only</h2>
-      <svg class="outLineBlock whiteBackground" height="300" width="500"></svg>
-
-      <h2 class="outLineBlock blueBackground">SVG has height and width in percents only</h2>
-      <svg class="outLineBlock whiteBackground" height="50%" width = 50%></svg>
-
-      <h2 class="outLineBlock blueBackground">SVG has viewBox only</h2>
-      <svg class="outLineBlock whiteBackground" viewBox="0 0 300 500"></svg>
-
-      <h2 class="outLineBlock blueBackground">SVG has viewBox height and width in pixels</h2>
-      <svg class="outLineBlock whiteBackground" height="300" width="500" viewBox="0 0 300 500"></svg>
-
-      <h2 class="outLineBlock blueBackground">SVG has viewBox but height and width in pixels inverted</h2>
-      <svg class="outLineBlock whiteBackground" height="500" width="300" viewBox="0 0 300 500"></svg>
-
-      <section class="outLineBlock blueBackground">
-        <h2>Grid controlled external to svg by radio buttons</h2>
-        <div id="radioManager">
-          <input type="radio" name="externalControl" value="MOVE">MOVE</input>
-          <input type="radio" name="externalControl" value="ZOOM">ZOOM</input>
-          <input type="radio" name="externalControl" value="ADD">ADD</input>
-          <input type="radio" name="externalControl" value="REMOVE">REMOVE</input>
-        </div>
-      </section>
-      </br>
-      <svg class="outLineBlock whiteBackground" id="noMenu" height="300" viewBox="0 0 500 300"></svg>
+      <div id="sVG1">
+        <h2 class="outLineBlock blueBackground">SVG has height and width in pixels only</h2>
+        <svg class="outLineBlock whiteBackground" height="300" width="500"></svg>
+      </div>
+      <div id="sVG2">
+        <h2 class="outLineBlock blueBackground">SVG has height and width in percents only</h2>
+        <svg class="outLineBlock whiteBackground" height="50%" width = 50%></svg>
+      </div>
+      <div id="sVG3">
+        <h2 class="outLineBlock blueBackground">SVG has viewBox only</h2>
+        <svg class="outLineBlock whiteBackground" viewBox="0 0 300 500"></svg>
+      </div>
+      <div id="sVG4">
+        <h2 class="outLineBlock blueBackground">SVG has viewBox height and width in pixels</h2>
+        <svg class="outLineBlock whiteBackground" height="300" width="500" viewBox="0 0 300 500"></svg>
+      </div>
+      <div id="sVG5">
+        <h2 class="outLineBlock blueBackground">SVG has viewBox but height and width in pixels inverted</h2>
+        <svg class="outLineBlock whiteBackground" height="500" width="300" viewBox="0 0 300 500"></svg>
+      </div>
+      <div id="sVG6">
+        <section class="outLineBlock blueBackground">
+          <h2>Grid controlled external to svg by radio buttons</h2>
+          <div id="radioManager">
+            <input type="radio" name="externalControl" value="MOVE">MOVE</input>
+            <input type="radio" name="externalControl" value="ZOOM">ZOOM</input>
+            <input type="radio" name="externalControl" value="ADD">ADD</input>
+            <input type="radio" name="externalControl" value="REMOVE">REMOVE</input>
+          </div>
+        </section>
+        </br>
+        <svg class="outLineBlock whiteBackground" id="noMenu" height="300" viewBox="0 0 500 300"></svg>
+      </div>
     </div>
-
-    <script src="triangleGrid.js"></script>
-    <script src="triangleGridBaseModules.js"></script>
 
     <script>
       //Hide anonymous function and variables from global space

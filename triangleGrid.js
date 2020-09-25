@@ -27,8 +27,8 @@
 
       this.nameSpace = "http://www.w3.org/2000/svg";
       this.staticSVG = svg;
-      this.scaledSVG = this.createAndSetElement("svg", svg, null);
-      this.grid = this.createAndSetElement("g", this.scaledSVG, {"class": "grid"});
+      this.scaledSVG = this.createAndSetElement("svg", svg, {id:"scaledSVG"});
+      this.grid = this.createAndSetElement("g", this.scaledSVG, {class: "gridGroup"});
       /*Length of one triangle of the grid*/
       this.xLength = triangleSideLength;
       /*Height of one triangle*/
@@ -37,6 +37,7 @@
       this.maxZoom = null;
       /*modes for module controls*/
       this.modes = [];
+      this.modeMenus = {};
       this.currentMode = "null";
       this.modules = modules;
       this.initialize();
@@ -161,6 +162,17 @@
       if(!attributes) return null;
       for(const [key, value] of Object.entries(attributes)) {
         element.setAttributeNS(null, key, value);
+      }
+    }
+
+    /*Method addEventListeners
+     *Parameters: element, [{eventType: type, eventHandler: handler}, ...]
+     *Description: take object of attributes and value and set in element
+     *Return: null
+     */
+    addEventListeners(element, listeners) {
+      for(const listener of listeners) {
+        element.addEventListener(listener.type, listener.handler);
       }
     }
 
