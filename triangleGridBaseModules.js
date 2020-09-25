@@ -22,8 +22,7 @@
       program.modes.push("MENU");
       //Create an outside group, to separate the menuButton and Menu
       const menuGroup = program.createAndSetElement("g", program.staticSVG, {id: "menuGroup"});
-      program.modeMenus["MENU"] = program.createAndSetElement("g", menuGroup, {
-        id: "menuMenu", transform: `translate(${program.maxZoom.width * .25}, 0)`});
+      program.modeMenus["MENU"] = program.createAndSetElement("g", menuGroup, {id: "menuMenu"});
       program.currentMode = "MENU";
     },
 
@@ -31,23 +30,20 @@
       let entireGroup = program.staticSVG.getElementById("menuGroup");
       //Retain this list to hide and show the menu
       let menuBackground = program.createAndSetElement("rect", program.modeMenus["MENU"],
-        {class: "menuBackground hideElement", width: "50%", height: "100%", style: "fill: #f0f8ffa0"});
+        {class: "menuBackground", x: "25%", width: "50%", height: "100%", style: "fill: #ffffffa0"});
 
       //create svg to store all to be made mode buttons
-      let menuSVG = program.createAndSetElement("svg", program.modeMenus["MENU"],
-        {class: "menu", width: "50%", viewBox: `0 0 ${program.maxZoom.width * .5}
-        ${program.maxZoom.height * .9}`, class: "menuOption"});
-      let menuViewBox = menuSVG.viewBox.baseVal;
+      let buttonGroup = program.createAndSetElement("g", program.modeMenus["MENU"],
+        {class: "menuButtons", transform: `translate(${program.maxZoom.width * .25}, 0)`});
 
       //create open menu button
       const menuButton = program.createAndSetElement("g", entireGroup,
         {class: "menuButton menuOption", "data-mode": "MENU", style: "display: none",
         transform: `translate(${program.maxZoom.width * .375}, ${program.maxZoom.height * .9})`});
       let menuRect = program.createAndSetElement("rect", menuButton, {
-        class: "menuBackground menuButtonHover",
-        width: "25%", height: "10%", style: "fill: #f0f8ffa0"});
+        class: "menuBackground", width: "25%", height: "10%", style: "fill: #ffffffa0"});
       let menuText = program.createAndSetElement("text", menuButton,
-        {class: "menuButtonText", x: "12.5%", y: "5%", style: "fill: #ffffff"});
+        {class: "menuButtonText", x: "12.5%", y: "5%"});
       menuText.appendChild(document.createTextNode(program.currentMode));
       menuText.style.dominantBaseline = "middle";
       menuText.style.textAnchor = "middle";
@@ -56,29 +52,33 @@
       for(let i = 0, iLen = program.modes.length; i < iLen; ++i) {
         //MENU is reserved to activating the menu
         if(program.modes[i] == "MENU") continue;
-        const menuOption = program.createAndSetElement("g", menuSVG, {
+        const menuOption = program.createAndSetElement("g", buttonGroup, {
           "data-mode": program.modes[i], "class" :"menuOption", "transform": `translate(
           ${program.maxZoom.width * .125}, ${program.maxZoom.height * (1 + i) * .15})`});
         let optionRect = program.createAndSetElement("rect", menuOption,
-          {class: "menuBackground menuButtonHover", width: "50%", height: "10%"});
-        optionRect.style.fill = "#f0f8ffa0";
+          {class: "menuBackground", width: "25%", height: "10%", style: "fill: #ffffffa0"});
         let optionText = program.createAndSetElement("text", menuOption,
-          {class: "menuButtonText", x: "25%", y: "5%", style: "fill: #ffffff"});
+          {class: "menuButtonText", x: "12.5%", y: "5%"});
         optionText.appendChild(document.createTextNode(program.modes[i]));
         optionText.style.dominantBaseline= "middle";
         optionText.style.textAnchor = "middle";
       }
 
-      const maxScroll = program.maxZoom.height * (program.modes.length - 4) * .15;
+      const maxScroll = -program.maxZoom.height * (program.modes.length - 6) * .15;
 
-      program.addEventListeners(entireGroup, [{type: "click", handler: menuControl},
-        {type: "mousedown", handler: menuSlideStart}, {type: "mousemove", handler: menuSliding},
+      entireGroup.addEventListener("click", menuControl);
+
+      if(program.modes.length < 7) return null;
+
+      program.addEventListeners(entireGroup,
+        [{type: "mousedown", handler: menuSlideStart}, {type: "mousemove", handler: menuSliding},
         {type: "mouseup", handler: menuSlideEnd}, {type: "mouseleave", handler: menuSlideEnd},
         {type: "touchstart", handler: menuSlideStart}, {type: "touchmove", handler: menuSliding},
         {type: "touchend", handler: menuSlideEnd}, {type: "touchcancel", handler: menuSlideEnd}]);
 
       let sliding = false;
       let start = null;
+      let currentSlide = 0;
 
       function menuControl(event) {
         let parentGroup = event.target.parentElement;
@@ -98,18 +98,20 @@
         event.stopPropagation();
         if(program.currentMode != "MENU") return null;
         sliding = true;
-        event = event.type == "mousedown" ? event : event.touches[0];
         start = program.transformToSVGPoint(program.staticSVG, event);
       }
       function menuSliding(event) {
         if(sliding) {
-          event = event.type == "mousemove" ? event : event.touches[0];
           let now = program.transformToSVGPoint(program.staticSVG, event);
-          let change = menuViewBox.y - (now.y - start.y);
+          currentSlide += (now.y - start.y);
           //Make sure not to lose the mode buttons
-          if(change < 0) change = 0;
-          else if(change > maxScroll) change = maxScroll;
-          menuViewBox.y = change;
+          if(currentSlide > 0) currentSlide = 0;
+          else if(currentSlide < maxScroll) currentSlide = maxScroll;
+
+          buttonGroup.setAttributeNS(null, "transform",
+            `translate(${program.maxZoom.width * .25}, ${currentSlide})`);
+          start = now;
+          //menuViewBox.y = change;
           program.updateSVG();
         }
       }
@@ -147,12 +149,10 @@
         //Prevent accidental highlighting
         event.preventDefault();
         moving = true;
-        event = event.type == "mousedown" ? event : event.touches[0];
         start = program.transformToSVGPoint(program.scaledSVG, event);
       }
       function gridMoving(event) {
         if(moving) {
-          event = event.type == "mousemove" ? event : event.touches[0];
           let now = program.transformToSVGPoint(program.scaledSVG, event);
           program.viewBox.x -= (now.x - start.x);
           program.viewBox.y -= (now.y - start.y);
@@ -200,12 +200,10 @@
         //Prevent accidental highlighting
         event.preventDefault();
         zooming = true;
-        event = event.type == "mousedown" ? event : event.touches[0];
         start = getDistanceFromSVGCenter(event);
       }
       function gridZooming(event) {
         if(zooming) {
-          event = event.type == "mousemove" ? event : event.touches[0];
           let now = getDistanceFromSVGCenter(event);
           let hypotRatio = (now - start) / program.maxZoom.hypotenuse;
           //Retain zoom bounds
@@ -251,15 +249,14 @@
       function addPoints(event) {
         if(program.currentMode != "ADD") return null;
         //convert mouse coordinates to svg coordinates to nearest grid coordinate.
-        event = event.type == "mousedown" ? event : event.touches[0];
         const sVGPoint = program.transformToSVGPoint(program.scaledSVG, event);
         const gridPoint = program.nearestGridPoint(sVGPoint);
+        console.log(gridPoint);
         const roundedSVGPoint = program.gridToSVGPoint(gridPoint);
 
-        let circle = program.createAndSetElement("circle", program.points, {r: '2',
-          cx: roundedSVGPoint.x, cy: roundedSVGPoint.y, class: "point",
-          style: "fill: white; stroke: black; strokeWidth: 1"});
-        program.points.appendChild(circle);
+        let circle = program.createAndSetElement("circle", program.points,
+          {r: '2', cx: roundedSVGPoint.x, cy: roundedSVGPoint.y, class: "point",
+          style: "fill: white; stroke: black; stroke-width: 1"});
       }
       function removePoints(event) {
         if(program.currentMode != "REMOVE") return null;
@@ -277,10 +274,7 @@
   const moduleCenterMarker = {
     preparation: function(program) {
       let center = program.createAndSetElement("circle", program.scaledSVG,
-        {class: "centerCircle", r: 2});
-      center.style.fill = "red";
-      center.style.stroke = "black";
-      center.style.strokeWidth = 1;
+        {class: "centerCircle", r: 2, style: "fill: red; stroke: black; stroke-width: 1;"});
     }
   };
 

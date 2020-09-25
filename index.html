@@ -3,7 +3,7 @@
 <html>
   <head xmlns="http://www.w3.org/1999/xhtml">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Triangle Grid Example</title>
+    <title>triGrid Modules Showcase</title>
     <style>
       .backgroundSVG {
         height: 100%;
@@ -42,22 +42,6 @@
       .whiteBackground {
         background-color: white;
       }
-
-      .menuBackground {
-        stroke: #a0a8af;
-        rx: 2%;
-      }
-
-      .menuButtonHover:hover {
-        fill: #f0f8ff;
-      }
-
-      .menuButtonText {
-        stroke: #aaaaaa;
-        font-family: "Arial Black", sans-serif;
-        font-size: 100%;
-        pointer-events: none;
-      }
     </style>
     <script src="triangleGrid.js"></script>
     <script src="triangleGridBaseModules.js"></script>
@@ -68,10 +52,7 @@
     <!--Apply this div's classes to everything inside it-->
     <div class="showCaseSVGs center noHighlight">
       <header class="outLineBlock blueBackground">
-        <h1>This page is meant to showcase the code in action.</h1>
-        <h4>Note: zoom works by pulling towards or away from center,</br>
-          like pinching with one finger on a mobile device<br>
-          this will be changed later from user suggestions.</h4>
+        <h1>triGrid Modules Showcase</h1>
         <details>
           <summary>Want to help debug?</summary>
           <h3>Try the following without console</h3>
@@ -86,26 +67,18 @@
       </header>
 
       <div id="sVG1">
-        <h2 class="outLineBlock blueBackground">SVG has height and width in pixels only</h2>
-        <svg class="outLineBlock whiteBackground" height="300" width="500"></svg>
+        <h2 class="outLineBlock blueBackground">Move and CenterMarker Module, click and drag to move.</h2>
+        <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
       </div>
       <div id="sVG2">
-        <h2 class="outLineBlock blueBackground">SVG has height and width in percents only</h2>
-        <svg class="outLineBlock whiteBackground" height="50%" width = 50%></svg>
+        <h2 class="outLineBlock blueBackground">Zoom Module, click and drag towards/away from center.</h2>
+        <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
       </div>
       <div id="sVG3">
-        <h2 class="outLineBlock blueBackground">SVG has viewBox only</h2>
-        <svg class="outLineBlock whiteBackground" viewBox="0 0 300 500"></svg>
+        <h2 class="outLineBlock blueBackground">Points Module, click on grid to add and click point to remove.</h2>
+        <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
       </div>
       <div id="sVG4">
-        <h2 class="outLineBlock blueBackground">SVG has viewBox height and width in pixels</h2>
-        <svg class="outLineBlock whiteBackground" height="300" width="500" viewBox="0 0 300 500"></svg>
-      </div>
-      <div id="sVG5">
-        <h2 class="outLineBlock blueBackground">SVG has viewBox but height and width in pixels inverted</h2>
-        <svg class="outLineBlock whiteBackground" height="500" width="300" viewBox="0 0 300 500"></svg>
-      </div>
-      <div id="sVG6">
         <section class="outLineBlock blueBackground">
           <h2>Grid controlled external to svg by radio buttons</h2>
           <div id="radioManager">
@@ -116,7 +89,11 @@
           </div>
         </section>
         </br>
-        <svg class="outLineBlock whiteBackground" id="noMenu" height="300" viewBox="0 0 500 300"></svg>
+        <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
+      </div>
+      <div id="sVG5">
+        <h2 class="outLineBlock blueBackground">MENU Module, working with all modules</h2>
+        <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
       </div>
     </div>
 
@@ -124,28 +101,19 @@
       //Hide anonymous function and variables from global space
       (() => {//Comment this line and the next to unhide
         //Make a static node list, bc triangle Grid makes additional SVGs.
-        var allSVGs = document.querySelectorAll("svg");
-        var allGrids = [];
-        var noMenuSVG = null;
-
+        const allSVGs = document.querySelectorAll(".showCaseSVG");
+        let allGrids = [new triGrid.triangleGrid(document.querySelector(".backgroundSVG"), 25, null)];
+        const options = [modules.moduleCenterMarker, modules.moduleMove, modules.moduleZoom, modules.modulePoints, modules.moduleMenu];
+        const menuOptions = [options.slice(0, 2), [options[2]], options.slice(3, 5), options.slice(0, 4), options];
         //create a grid class for every svg.
         for(let i = 0; i < allSVGs.length; i++) {
-          let options = [modules.moduleCenterMarker, modules.moduleMove,
-            modules.moduleZoom, modules.modulePoints, modules.moduleMenu];
-          //For background, in this case is the first svg
-          if(!i) options = null;
-          //Load svg 6 with no menuModule, so only radioManager down below can control.
-          if(allSVGs[i].id == "noMenu") {
-            noMenuSVG = i;
-            options.pop();
-          }
-          allGrids.push(new triGrid.triangleGrid(allSVGs[i], !i ? 25 : 5, options));
+          allGrids.push(new triGrid.triangleGrid(allSVGs[i], 5, menuOptions[i]));
+          allGrids[i].currentMode = allGrids[i].modes[allGrids[i].modes.length - 1];
         }
-
         //Go into grid class and change mode using closures
         document.getElementById("radioManager").addEventListener("click", (event) => {
-          allGrids[noMenuSVG].currentMode = event.target.value;});
-
+          allGrids[4].currentMode = event.target.value;
+        });
       })();//Comment this line and previous to unhide
 
     </script>
