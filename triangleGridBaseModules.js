@@ -66,7 +66,7 @@
 
       const maxScroll = -program.maxZoom.height * (program.modes.length - 6) * .15;
 
-      entireGroup.addEventListener("click", menuControl);
+      entireGroup.addEventListener("mousedown", menuControl);
 
       if(program.modes.length < 7) return null;
 
@@ -81,6 +81,7 @@
       let currentSlide = 0;
 
       function menuControl(event) {
+        event.stopPropagation();
         let parentGroup = event.target.parentElement;
         if(!parentGroup.classList.contains("menuOption")) return null;
         if(program.modeMenus[program.currentMode]) {
@@ -98,12 +99,12 @@
         event.stopPropagation();
         if(program.currentMode != "MENU") return null;
         sliding = true;
-        event = event.clientX ? event : event.touches[0];
+        event = event.type == "mousedown" ? event : event.touches[0];
         start = program.transformToSVGPoint(program.staticSVG, event);
       }
       function menuSliding(event) {
         if(sliding) {
-          event = event.clientX ? event : event.touches[0];
+          event = event.type == "mousemove" ? event : event.touches[0];
           let now = program.transformToSVGPoint(program.staticSVG, event);
           currentSlide += (now.y - start.y);
           //Make sure not to lose the mode buttons
@@ -151,12 +152,12 @@
         //Prevent accidental highlighting
         event.preventDefault();
         moving = true;
-        event = event.clientX ? event : event.touches[0];
+        event = event.type == "mousedown" ? event : event.touches[0];
         start = program.transformToSVGPoint(program.scaledSVG, event);
       }
       function gridMoving(event) {
         if(moving) {
-          event = event.clientX ? event : event.touches[0];
+          event = event.type == "mousemove" ? event : event.touches[0];
           let now = program.transformToSVGPoint(program.scaledSVG, event);
           program.viewBox.x -= (now.x - start.x);
           program.viewBox.y -= (now.y - start.y);
@@ -204,12 +205,12 @@
         //Prevent accidental highlighting
         event.preventDefault();
         zooming = true;
-        event = event.clientX ? event : event.touches[0];
+        event = event.type == "mousedown" ? event : event.touches[0];
         start = getDistanceFromSVGCenter(event);
       }
       function gridZooming(event) {
         if(zooming) {
-          event = event.clientX ? event : event.touches[0];
+          event = event.type == "mousemove" ? event : event.touches[0];
           let now = getDistanceFromSVGCenter(event);
           let hypotRatio = (now - start) / program.maxZoom.hypotenuse;
           //Retain zoom bounds
@@ -254,7 +255,7 @@
 
       function addPoints(event) {
         if(program.currentMode != "ADD") return null;
-        event = event.clientX ? event : event.touches[0];
+        event = event.type == "mousedown" ? event : event.touches[0];
         //convert mouse coordinates to svg coordinates to nearest grid coordinate.
         const sVGPoint = program.transformToSVGPoint(program.scaledSVG, event);
         const gridPoint = program.nearestGridPoint(sVGPoint);
