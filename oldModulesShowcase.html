@@ -3,7 +3,7 @@
 <html>
   <head xmlns="http://www.w3.org/1999/xhtml">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Triangle Grid Home</title>
+    <title>Triangle Grid Old Modules Showcase</title>
     <style>
       .backgroundSVG {
         height: 100%;
@@ -44,6 +44,7 @@
       }
     </style>
     <script src="triangleGrid.js"></script>
+    <script src="triangleGridOldModules.js"></script>
   </head>
   <body>
     <!--Background should have preserveAspectRatio-->
@@ -51,24 +52,24 @@
     <!--Apply this div's classes to everything inside it-->
     <div class="showCaseSVGs center noHighlight">
       <header class="outLineBlock blueBackground">
-        <h1>Triangle Grid Home</h1>
+        <h1>Triangle Grid Old Modules Showcase</h1>
+        <a href="index.html">Back to Home</a>
+        </br>
       </header>
 
-      <div class="outLineBlock blueBackground">
-        <h2><a href="basicModulesShowcase.html">Basic Modules ShowCase</a></h2>
-        <p>Basic modules that add interactability to the triangle grids.</p>
-      </div>
-
-      <div class="outLineBlock blueBackground">
-        <h2><a href="oldModulesShowcase.html">Old Modules ShowCase</a></h2>
-        <p>Modules that were disliked, so they are removed from Basic modules and placed in old.</p>
+      <div id="sVG1">
+        <h2 class="outLineBlock blueBackground">Zoom Module, starts zoomed halfway, click and drag towards/away from center.</h2>
+        <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
       </div>
     </div>
 
     <script>
       //Hide anonymous function and variables from global space
       (() => {//Comment this line and the next to unhide
-        new triGrid.triangleGrid(document.querySelector(".backgroundSVG"), 25, null);
+        new triGrid.triangleGrid(document.querySelector(".backgroundSVG"), 25, null)
+        let zoomSVG = new triGrid.triangleGrid(document.querySelector(".showCaseSVG"), 5, [modules.moduleAroundCenterZoom]);
+        //Make sure to set mode to triGrid's current mode if there are no menus to handle it.
+        zoomSVG.currentMode = "ZOOM";
       })();//Comment this line and previous to unhide
 
     </script>

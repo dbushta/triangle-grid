@@ -174,20 +174,20 @@
   };
 
 
-  /*Object moduleZoom
+  /*Object moduleVerticalZoom
    *Parameter: null
    *Description: install zoom mode
    *Return: null
    */
-  const moduleAroundCenterZoom = {
+  const moduleVerticalZoom = {
     necessities: function(program) {
       //.05 to 1 maxZoom
       program.currentZoom = 0.5;
       program.modes.push("ZOOM");
       program.modeMenus["ZOOM"] = program.createAndSetElement("g", program.staticSVG, {id: "zoomMenu"});
-      program.createAndSetElement("circle", program.modeMenus["ZOOM"],
-        {id: "zoomCircle", r: 1, cx: program.maxZoom.width / 2, cy: program.maxZoom.height / 2,
-        style: "fill: none; stroke: red; stroke-width: 2"});
+      //program.createAndSetElement("rect", program.modeMenus["ZOOM"],
+      //  {id: "zoomSquare", x: program.maxZoom.width / 2, y: program.maxZoom.height / 2,
+      //  style: "fill: none; stroke: red; stroke-width: 2"});
     },
 
     preparation: function(program) {
@@ -226,14 +226,14 @@
         event.preventDefault();
         zooming = true;
         event = event.type == "mousedown" ? event : event.touches[0];
-        start = getDistanceFromScaledSVGCenter(event);
-        zoomCircle.setAttributeNS(null, 'r', getDistanceFromStaticSVGCenter(event));
+        start = program.transformToSVGPoint(program.scaledSVG, event);
+        //zoomCircle.setAttributeNS(null, 'r', getDistanceFromStaticSVGCenter(event));
       }
       function gridZooming(event) {
         if(zooming) {
           event = event.type == "mousemove" ? event : event.touches[0];
-          let now = getDistanceFromScaledSVGCenter(event);
-          let hypotRatio = (now - start) / program.maxZoom.hypotenuse;
+          const now = program.transformToSVGPoint(program.scaledSVG, event);
+          let hypotRatio = (now.y - start.y) / program.maxZoom.hypotenuse;
           //Retain zoom bounds
           let circleColor = "red";
           if(program.currentZoom - hypotRatio > 1) {
@@ -241,10 +241,10 @@
           } else if(program.currentZoom - hypotRatio < .05) {
             hypotRatio = program.currentZoom - .05;
           } else {
-            zoomCircle.setAttributeNS(null, 'r', getDistanceFromStaticSVGCenter(event));
+            //zoomCircle.setAttributeNS(null, 'r', getDistanceFromStaticSVGCenter(event));
             circleColor = "black"
           }
-          zoomCircle.style.stroke = circleColor;
+          //zoomCircle.style.stroke = circleColor;
           program.currentZoom -= hypotRatio;
           //Make sure to move viewBox while scaling to keep centered
           program.viewBox.x += program.maxZoom.width * hypotRatio / 2;
@@ -286,7 +286,6 @@
         //convert mouse coordinates to svg coordinates to nearest grid coordinate.
         const sVGPoint = program.transformToSVGPoint(program.scaledSVG, event);
         const gridPoint = program.nearestGridPoint(sVGPoint);
-        console.log(gridPoint);
         const roundedSVGPoint = program.gridToSVGPoint(gridPoint);
 
         let circle = program.createAndSetElement("circle", program.points,
@@ -316,7 +315,7 @@
   //Fill global or exports depending on import method
   exports.moduleMenu = moduleMenu;
   exports.moduleMove = moduleMove;
-  exports.moduleAroundCenterZoom = moduleAroundCenterZoom;
+  exports.moduleVerticalZoom = moduleVerticalZoom;
   exports.modulePoints = modulePoints;
   exports.moduleCenterMarker = moduleCenterMarker;
   exports.__esModule = true;
