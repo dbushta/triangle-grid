@@ -185,9 +185,6 @@
       program.currentZoom = 0.5;
       program.modes.push("ZOOM");
       program.modeMenus["ZOOM"] = program.createAndSetElement("g", program.staticSVG, {id: "zoomMenu"});
-      //program.createAndSetElement("rect", program.modeMenus["ZOOM"],
-      //  {id: "zoomSquare", x: program.maxZoom.width / 2, y: program.maxZoom.height / 2,
-      //  style: "fill: none; stroke: red; stroke-width: 2"});
     },
 
     preparation: function(program) {
@@ -199,7 +196,6 @@
 
       let zooming = false;
       let start = 0;
-      const zoomCircle = program.modeMenus["ZOOM"].getElementsByTagName("circle")[0];
 
       //Zoom in halfway, so user can zoom in or out at start.
       program.viewBox.x += program.maxZoom.width / 4;
@@ -207,44 +203,26 @@
       program.viewBox.width -= program.maxZoom.width / 2;
       program.viewBox.height -= program.maxZoom.height / 2;
 
-      //get distance from current screen center.
-      function getDistanceFromScaledSVGCenter(event) {
-        const newPt = program.transformToSVGPoint(program.scaledSVG, event);
-        return Math.hypot(newPt.x - (program.viewBox.x + program.viewBox.width / 2),
-          newPt.y - (program.viewBox.y + program.viewBox.height / 2));
-      }
-
-      //get distance from current screen center.
-      function getDistanceFromStaticSVGCenter(event) {
-        const newPt = program.transformToSVGPoint(program.staticSVG, event);
-        return Math.hypot(newPt.x - program.maxZoom.width / 2,
-          newPt.y - program.maxZoom.height / 2);
-      }
       function gridZoomStart(event) {
         if(program.currentMode != "ZOOM") return null;
         //Prevent accidental highlighting
         event.preventDefault();
         zooming = true;
         event = event.type == "mousedown" ? event : event.touches[0];
-        start = program.transformToSVGPoint(program.scaledSVG, event);
-        //zoomCircle.setAttributeNS(null, 'r', getDistanceFromStaticSVGCenter(event));
+        start = program.transformToSVGPoint(program.staticSVG, event);
       }
       function gridZooming(event) {
         if(zooming) {
           event = event.type == "mousemove" ? event : event.touches[0];
-          const now = program.transformToSVGPoint(program.scaledSVG, event);
-          let hypotRatio = (now.y - start.y) / program.maxZoom.hypotenuse;
+          const now = program.transformToSVGPoint(program.staticSVG, event);
+          let hypotRatio = (now.y - start.y) / program.maxZoom.height;
+          start = now;
           //Retain zoom bounds
-          let circleColor = "red";
           if(program.currentZoom - hypotRatio > 1) {
             hypotRatio = program.currentZoom - 1;
           } else if(program.currentZoom - hypotRatio < .05) {
             hypotRatio = program.currentZoom - .05;
-          } else {
-            //zoomCircle.setAttributeNS(null, 'r', getDistanceFromStaticSVGCenter(event));
-            circleColor = "black"
           }
-          //zoomCircle.style.stroke = circleColor;
           program.currentZoom -= hypotRatio;
           //Make sure to move viewBox while scaling to keep centered
           program.viewBox.x += program.maxZoom.width * hypotRatio / 2;
