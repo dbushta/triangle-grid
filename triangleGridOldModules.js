@@ -13,13 +13,14 @@
   "use strict";
 
 
-  /*Object moduleAroundCenterZoom
+  /*class moduleAroundCenterZoom
    *Parameter: null
    *Description: install zoom mode
    *Return: null
    */
-  const moduleAroundCenterZoom = {
-    necessities: function(program) {
+  class moduleAroundCenterZoom {
+    constructor(program) {
+      this.program = program;
       //.05 to 1 maxZoom
       program.currentZoom = 0.5;
       program.modes.push("ZOOM");
@@ -27,9 +28,10 @@
       program.createAndSetElement("circle", program.modeMenus["ZOOM"],
         {id: "zoomCircle", r: 1, cx: program.maxZoom.width / 2, cy: program.maxZoom.height / 2,
         style: "fill: none; stroke: red; stroke-width: 2"});
-    },
+    }
 
-    preparation: function(program) {
+    preparation() {
+      const program = this.program;
       program.addEventListeners(program.staticSVG,
         [{type: "mousedown", handler: gridZoomStart}, {type: "mousemove", handler: gridZooming},
         {type: "mouseup", handler: gridZoomEnd}, {type: "mouseleave", handler: gridZoomEnd},
@@ -98,7 +100,7 @@
         program.modeMenus["ZOOM"]
       }
     }
-  };
+  }
 
   //Fill global or exports depending on import method
   exports.moduleAroundCenterZoom = moduleAroundCenterZoom;

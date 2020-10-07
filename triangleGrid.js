@@ -71,12 +71,8 @@
       //Call preparation functions
       this.drawLines();
       if(!this.modules) return null;
-      for(const module of this.modules) {
-        if(module.hasOwnProperty("necessities")) module.necessities(this);
-      }
-      for(const module of this.modules) {
-        if(module.hasOwnProperty("preparation")) module.preparation(this);
-      }
+      for(let i = 0; i < this.modules.length; i++) this.modules[i] = new this.modules[i](this);
+      for(const module of this.modules) module.preparation(this);
     }
 
     /*Method drawLines

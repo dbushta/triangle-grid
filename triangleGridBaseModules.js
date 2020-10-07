@@ -12,21 +12,23 @@
 }(this, function(exports) {
   "use strict";
 
-  /*object moduleMenu
+  /*class moduleMenu
    *Parameters: null
    *Description: install menu mode
    *Return: null
    */
-  const moduleMenu = {
-    necessities: function(program) {
+  class moduleMenu {
+    constructor(program) {
+      this.program = program;
       program.modes.push("MENU");
       //Create an outside group, to separate the menuButton and Menu
       const menuGroup = program.createAndSetElement("g", program.staticSVG, {id: "menuGroup"});
       program.modeMenus["MENU"] = program.createAndSetElement("g", menuGroup, {id: "menuMenu"});
       program.currentMode = "MENU";
-    },
+    }
 
-    preparation: function(program) {
+    preparation() {
+      const program = this.program;
       let entireGroup = program.staticSVG.getElementById("menuGroup");
       //Retain this list to hide and show the menu
       let menuBackground = program.createAndSetElement("rect", program.modeMenus["MENU"],
@@ -125,21 +127,23 @@
         sliding = false;
       }
     }
-  };
+  }
 
 
-  /*object moduleMove
+  /*class moduleMove
    *Parameters: null
    *Description: install move mode
    *Return: null
    */
-  const moduleMove = {
-    necessities: function(program) {
+  class moduleMove {
+    constructor(program) {
+      this.program = program;
       program.modes.push("MOVE");
       program.modeMenus["MOVE"] = null;
-    },
+    }
 
-    preparation: function(program) {
+    preparation() {
+      const program = this.program;
       program.addEventListeners(program.staticSVG,
         [{type: "mousedown", handler: gridMoveStart}, {type: "mousemove", handler: gridMoving},
         {type: "mouseup", handler: gridMoveEnd}, {type: "mouseleave", handler: gridMoveEnd},
@@ -171,23 +175,27 @@
         moving = false;
       }
     }
-  };
+  }
 
 
-  /*Object moduleVerticalZoom
+  /*class moduleVerticalZoom
    *Parameter: null
    *Description: install zoom mode
    *Return: null
    */
-  const moduleVerticalZoom = {
-    necessities: function(program) {
-      //.05 to 1 maxZoom
+  class moduleVerticalZoom {
+    constructor(program) {
+      this.program = program;
+      //0.05 to 1 maxZoom
       program.currentZoom = 0.5;
       program.modes.push("ZOOM");
-      program.modeMenus["ZOOM"] = program.createAndSetElement("g", program.staticSVG, {id: "zoomMenu"});
-    },
+      program.modeMenus["ZOOM"] = program.createAndSetElement(
+        "g", program.staticSVG, {id: "zoomMenu"}
+      );
+    }
 
-    preparation: function(program) {
+    preparation() {
+      const program = this.program;
       program.addEventListeners(program.staticSVG,
         [{type: "mousedown", handler: gridZoomStart}, {type: "mousemove", handler: gridZooming},
         {type: "mouseup", handler: gridZoomEnd}, {type: "mouseleave", handler: gridZoomEnd},
@@ -237,7 +245,7 @@
         program.modeMenus["ZOOM"]
       }
     }
-  };
+  }
 
 
   /*Method modulePoints
@@ -245,15 +253,17 @@
    *Description: install setPoints
    *Return: null
    */
-  const modulePoints = {
-    necessities: function(program) {
+  class modulePoints {
+    constructor(program) {
+      this.program = program;
       program.points = program.createAndSetElement("g", program.scaledSVG, {"class": "pointGroup"});
       program.modes.push("ADD", "REMOVE");
       program.modeMenus["ADD"] = null;
       program.modeMenus["REMOVE"] = null;
-    },
+    }
 
-    preparation: function(program) {
+    preparation() {
+      const program = this.program;
       program.addEventListeners(program.staticSVG, [
         {type: "mousedown", handler: addPoints}, {type: "mousedown", handler: removePoints},
         {type: "touchstart", handler: addPoints}, {type: "touchstart", handler: removePoints}]);
@@ -275,20 +285,23 @@
         if(event.target.classList.contains("point")) event.target.remove();
       }
     }
-  };
+  }
 
   /*object moduleCenterMarker
    *Parameters: null
    *Description: Add a circle to 0, 0 on the grid
-   *  in preparation so itrenders above other elements.
+   *  in preparation so it renders above other elements.
    *return null
    */
-  const moduleCenterMarker = {
-    preparation: function(program) {
-      let center = program.createAndSetElement("circle", program.scaledSVG,
+  class moduleCenterMarker {
+    constructor(program) {
+      this.program = program;
+    }
+    preparation() {
+      let center = this.program.createAndSetElement("circle", this.program.scaledSVG,
         {class: "centerCircle", r: 2, style: "fill: red; stroke: black; stroke-width: 1;"});
     }
-  };
+  }
 
   //Fill global or exports depending on import method
   exports.moduleMenu = moduleMenu;

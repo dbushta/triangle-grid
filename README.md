@@ -21,8 +21,8 @@ If ya want to make your own modules, make them, send a module name, username/con
 #### A boiler plate module:</br> ####
 ```js
 moduleName = {
-  /*Method necessities is a constructor*/
-  necessities: function(program) {
+  constructor(program) {
+    this.program = program;
     //"program" refers to the triGrid instance
     //Push to modes to add a new Mode, if there are any
     program.modes.push("modeName");
@@ -32,7 +32,7 @@ moduleName = {
     //Change or add necessary attributes to triGrid
     program.attributeName = attributeName;
   },
-  preparation: function(program) {
+  preparation() {
     //"program" refers to the triGrid instance.
   }
 };
