@@ -20,7 +20,7 @@ Please test out the code in various browsers and operating systems, if ya find i
 If ya want to make your own modules, make them, send a module name, username/contact, description and link to where its located and they will be put under contributed modules.</br>
 #### A boiler plate module:</br> ####
 ```js
-moduleName = {
+class moduleName {
   constructor(program) {
     this.program = program;
     //"program" refers to the triGrid instance
