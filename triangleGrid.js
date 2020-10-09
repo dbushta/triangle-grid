@@ -15,7 +15,7 @@
    *Description: a class to control Triangle Grid through
    */
   class triangleGrid {
-    constructor(svg, triangleSideLength = 5, modules = null) {
+    constructor(svg, triangleSideLength = 5, modules = null, mode = null) {
       if(svg.tagName.toLowerCase() != "svg")
         throw "triangleGrid constructor failed, 1st parameter, no svg given";
       if(typeof triangleSideLength != "number")
@@ -33,12 +33,46 @@
       this.xLength = triangleSideLength;
       /*Height of one triangle*/
       this.yLength = Math.sqrt(3) * this.xLength / 2;
-      this.viewBox = null;
-      this.maxZoom = null;
+
+      /*Main controller for basic transforms on svg*/
+      this.transform = {
+        program: this.program,
+        currentZoom: 0,
+        maxZoom: null,
+        _viewBox: null,
+        _moveDisplacement: {x: 0, y: 0},
+        _zoomDisplacement: {x: 0, y: 0},
+        //convert to set move
+        moveBy: function(vector) {
+          this.move = {x: this._moveDisplacement.x - vector.x,
+            y: this._moveDisplacement.y - vector.y};
+        },
+        //store displacement, and update viewBox
+        set move(coordinates) {
+          this._moveDisplacement.x = coordinates.x;
+          this._moveDisplacement.y = coordinates.y;
+          this._viewBox.x = this._moveDisplacement.x + this._zoomDisplacement.x;
+          this._viewBox.y = this._moveDisplacement.y + this._zoomDisplacement.y;
+        },
+        //convert to set zoom
+        zoomBy: function(percent) {
+          this.zoom = this.currentZoom + percent;
+        },
+        //store zoom Displacement, and update viewBox.
+        set zoom(percent) {
+          this.currentZoom = percent;
+          this._zoomDisplacement.x = (1 - this.currentZoom) * this.maxZoom.width / 2;
+          this._zoomDisplacement.y = (1 - this.currentZoom) * this.maxZoom.height / 2;
+          this._viewBox.x = this._moveDisplacement.x + this._zoomDisplacement.x;
+          this._viewBox.y = this._moveDisplacement.y + this._zoomDisplacement.y;
+          this._viewBox.width = this.currentZoom * this.maxZoom.width;
+          this._viewBox.height = this.currentZoom * this.maxZoom.height;
+        }
+      };
       /*modes for module controls*/
       this.modes = [];
       this.modeMenus = {};
-      this.currentMode = "null";
+      this.currentMode = mode;
       this.modules = modules;
       this.initialize();
       this.updateSVG();
@@ -55,7 +89,7 @@
        */
       const dimensions = this.staticSVG.getBoundingClientRect();
       //Remember max size before infinite grid illusion is broken
-      this.maxZoom = {
+      this.transform.maxZoom = {
         width: dimensions.width,
         height: dimensions.height,
         hypotenuse: Math.hypot(dimensions.height, dimensions.width)};
@@ -63,14 +97,12 @@
       const viewBoxString = `0 0 ${dimensions.width} ${dimensions.height}`;
       this.staticSVG.setAttributeNS(null, "viewBox", viewBoxString);
       this.scaledSVG.setAttributeNS(null, "viewBox", viewBoxString);
-      this.viewBox = this.scaledSVG.viewBox.baseVal;
-      this.viewBox.width = dimensions.width;
-      this.viewBox.height = dimensions.height;
-      this.viewBox.x -= dimensions.width / 2;
-      this.viewBox.y -= dimensions.height / 2;
-      //Call preparation functions
+      this.transform._viewBox = this.scaledSVG.viewBox.baseVal;
+      this.transform.moveBy({x: dimensions.width / 2, y: dimensions.height / 2});
+
       this.drawLines();
       if(!this.modules) return null;
+      //Create and call preparation functions
       for(let i = 0; i < this.modules.length; i++) this.modules[i] = new this.modules[i](this);
       for(const module of this.modules) module.preparation(this);
     }
@@ -82,12 +114,14 @@
      */
     drawLines() {
       /*length equation reasoning:
-        use the longer side of the svg's viewBox, and intDivide by 2 yLengths
+        use the longer side of the svg's viewBox, and floor divide by 2 yLengths
         then multiply by 2 xLengths bc yLength < xLength so length is an even number
         and large enough for the infinite grid illusion to work when moving.
        */
-      const length = this.intDivide(this.maxZoom.height > this.maxZoom.width ?
-        this.maxZoom.height : this.maxZoom.width, 2 * this.yLength) * 2 * this.xLength;
+      const length = Math.floor(
+        (this.transform.maxZoom.height > this.transform.maxZoom.width ?
+        this.transform.maxZoom.height : this.transform.maxZoom.width) /
+        (2 * this.yLength)) * 2 * this.xLength;
       var pointPairs = [];
       /*Create diagonal point pairs starting at half a length(which is even) to the left.
         Length is the height of a right triangle, which is sqrt(3) times the base.
@@ -122,17 +156,8 @@
     updateSVG() {
       //Find the nearest whole x and y pattern length and move grid to it.
       this.grid.setAttributeNS(null, "transform", `translate(
-        ${this.xLength * this.intDivide(this.viewBox.x, this.xLength)},
-        ${2 * this.yLength * this.intDivide(this.viewBox.y, 2 * this.yLength)})`);
-    }
-
-    /*Method intDivide
-     *Parameters: numerator(number), denominator(number)
-     *Description: Determine how many whole denominators are in numerator
-     *Return: whole number
-     */
-    intDivide(numerator, denominator) {
-      return Math.floor(numerator / denominator);
+        ${this.xLength * Math.floor(this.transform._viewBox.x / this.xLength)},
+        ${2 * this.yLength * Math.floor(this.transform._viewBox.y / (2 * this.yLength))})`);
     }
 
     /*Method createAndSetElement
@@ -184,12 +209,14 @@
         if(svg.tagName.toLowerCase() == "svg") outerSVGs.push(svg);
         svg = svg.parentElement;
       }
-      //will always be the static svg
+      //will always be the static svg, pls note fails when svg has x, y attributes,
+      //also fails if there is a transform translate along the way.
+      //This is only necessary in Firefox.
       let newPt = svgPt.matrixTransform(outerSVGs.pop().getScreenCTM().inverse());
       while(outerSVGs.length > 0) {
         const nextSVG = outerSVGs.pop().viewBox.baseVal;
-        newPt.x *= nextSVG.width / this.maxZoom.width;
-        newPt.y *= nextSVG.height / this.maxZoom.height;
+        newPt.x *= nextSVG.width / this.transform.maxZoom.width;
+        newPt.y *= nextSVG.height / this.transform.maxZoom.height;
         newPt.x += nextSVG.x;
         newPt.y += nextSVG.y;
       }
@@ -202,8 +229,8 @@
      *Return: newly created point
      */
     nearestGridPoint(point) {
-      const y = this.intDivide(point.y, this.yLength);
-      return {y: y, x: Math.floor(point.x / this.xLength - y / 2)};
+      const y = Math.round(point.y / this.yLength);
+      return {y: y, x: Math.round(point.x / this.xLength - y / 2)};
     }
 
     /*Method gridToSVGPoint

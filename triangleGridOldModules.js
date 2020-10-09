@@ -22,16 +22,14 @@
     constructor(program) {
       this.program = program;
       //.05 to 1 maxZoom
-      program.currentZoom = 0.5;
       program.modes.push("ZOOM");
       program.modeMenus["ZOOM"] = program.createAndSetElement("g", program.staticSVG, {id: "zoomMenu"});
       program.createAndSetElement("circle", program.modeMenus["ZOOM"],
-        {id: "zoomCircle", r: 1, cx: program.maxZoom.width / 2, cy: program.maxZoom.height / 2,
-        style: "fill: none; stroke: red; stroke-width: 2"});
+        {id: "zoomCircle", r: 1, cx: program.transform.maxZoom.width / 2,
+        cy: program.transform.maxZoom.height / 2, style: "fill: none; stroke: red; stroke-width: 2"});
     }
 
-    preparation() {
-      const program = this.program;
+    preparation(program) {
       program.addEventListeners(program.staticSVG,
         [{type: "mousedown", handler: gridZoomStart}, {type: "mousemove", handler: gridZooming},
         {type: "mouseup", handler: gridZoomEnd}, {type: "mouseleave", handler: gridZoomEnd},
@@ -43,23 +41,20 @@
       const zoomCircle = program.modeMenus["ZOOM"].getElementsByTagName("circle")[0];
 
       //Zoom in halfway, so user can zoom in or out at start.
-      program.viewBox.x += program.maxZoom.width / 4;
-      program.viewBox.y += program.maxZoom.height / 4;
-      program.viewBox.width -= program.maxZoom.width / 2;
-      program.viewBox.height -= program.maxZoom.height / 2;
+      program.transform.zoom = 0.5;
 
       //get distance from current screen center.
       function getDistanceFromScaledSVGCenter(event) {
       const newPt = program.transformToSVGPoint(program.scaledSVG, event);
-      return Math.hypot(newPt.x - (program.viewBox.x + program.viewBox.width / 2),
-        newPt.y - (program.viewBox.y + program.viewBox.height / 2));
+      return Math.hypot(newPt.x - (program.transform._viewBox.x + program.transform._viewBox.width / 2),
+        newPt.y - (program.transform._viewBox.y + program.transform._viewBox.height / 2));
     }
 
       //get distance from current screen center.
       function getDistanceFromStaticSVGCenter(event) {
         const newPt = program.transformToSVGPoint(program.staticSVG, event);
-        return Math.hypot(newPt.x - program.maxZoom.width / 2,
-          newPt.y - program.maxZoom.height / 2);
+        return Math.hypot(newPt.x - program.transform.maxZoom.width / 2,
+          newPt.y - program.transform.maxZoom.height / 2);
       }
       function gridZoomStart(event) {
         if(program.currentMode != "ZOOM") return null;
@@ -74,24 +69,19 @@
         if(zooming) {
           event = event.type == "mousemove" ? event : event.touches[0];
           let now = getDistanceFromScaledSVGCenter(event);
-          let hypotRatio = (now - start) / program.maxZoom.hypotenuse;
+          let hypotRatio = (now - start) / program.transform.maxZoom.hypotenuse;
           //Retain zoom bounds
           let circleColor = "red";
-          if(program.currentZoom - hypotRatio > 1) {
-            hypotRatio = program.currentZoom - 1;
-          } else if(program.currentZoom - hypotRatio < .05) {
-            hypotRatio = program.currentZoom - .05;
+          if(program.transform.currentZoom - hypotRatio > 1) {
+            hypotRatio = program.transform.currentZoom - 1;
+          } else if(program.transform.currentZoom - hypotRatio < 0.05) {
+            hypotRatio = program.transform.currentZoom - 0.05;
           } else {
             zoomCircle.setAttributeNS(null, 'r', getDistanceFromStaticSVGCenter(event));
             circleColor = "black"
           }
           zoomCircle.style.stroke = circleColor;
-          program.currentZoom -= hypotRatio;
-          //Make sure to move viewBox while scaling to keep centered
-          program.viewBox.x += program.maxZoom.width * hypotRatio / 2;
-          program.viewBox.y += program.maxZoom.height * hypotRatio / 2;
-          program.viewBox.width -= program.maxZoom.width * hypotRatio;
-          program.viewBox.height -= program.maxZoom.height * hypotRatio;
+          program.transform.zoomBy(-hypotRatio);
           program.updateSVG();
         }
       }
