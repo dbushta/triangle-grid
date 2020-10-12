@@ -78,26 +78,33 @@
       </div>
       <div id="sVG3">
         <div class="outLineBlock blueBackground">
-          <h2>Points Module, click on grid to add and click point to remove.</h2>
-          <p>Note: difficult to press to remove circles on touch screen.</p>
+          <h2>Points Mouse Module, click on grid to add and click point to remove.</h2>
+          <p>For mouse only.</p>
         </div>
 
         <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
       </div>
       <div id="sVG4">
+        <div class="outLineBlock blueBackground">
+          <h2>Points Touch Module, 2+ fingers, currently testing.</h2>
+          <p>For touch screen only.</p>
+        </div>
+
+        <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
+      </div>
+      <div id="sVG5">
         <section class="outLineBlock blueBackground">
           <h2>Grid controlled external to svg by radio buttons</h2>
           <div id="radioManager">
             <input type="radio" name="externalControl" value="MOVE">MOVE</input>
             <input type="radio" name="externalControl" value="ZOOM">ZOOM</input>
-            <input type="radio" name="externalControl" value="ADD">ADD</input>
-            <input type="radio" name="externalControl" value="REMOVE">REMOVE</input>
+            <input type="radio" name="externalControl" value="POINTS">POINTS</input>
           </div>
         </section>
         </br>
         <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
       </div>
-      <div id="sVG5">
+      <div id="sVG6">
         <h2 class="outLineBlock blueBackground">MENU Module, working with all modules</h2>
         <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
       </div>
@@ -108,9 +115,11 @@
       (() => {//Comment this line and the next to unhide
         //Make a static node list, bc triangle Grid makes additional SVGs.
         const allSVGs = document.querySelectorAll(".showCaseSVG");
-        const options = [modules.moduleCenterMarker, modules.moduleMove, modules.moduleVerticalZoom, modules.modulePoints, modules.moduleMenu];
-        const menuOptions = [options.slice(0, 2), [options[2]], options.slice(3, 5), options.slice(0, 4), options];
-        const menuModes = ["MOVE", "ZOOM", "MENU", null, "MENU"];
+        const options = [modules.moduleCenterMarker, modules.moduleMove,
+          modules.moduleVerticalZoom, modules.moduleMousePoints, modules.moduleMenu];
+        const menuOptions = [options.slice(0, 2), [options[2]], [options[3]],
+          options.slice(0, 4), options];
+        const menuModes = ["MOVE", "ZOOM", "POINTS", null, "MENU"];
 
         //create a grid class for every svg.
         let allGrids = [new triGrid.triangleGrid(document.querySelector(".backgroundSVG"), 25, null)];

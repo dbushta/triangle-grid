@@ -265,41 +265,115 @@
   }
 
 
-  /*Method modulePoints
+  /*Method moduleMousePoints
    *Parameters: null
    *Description: install setPoints
    *Return: null
    */
-  class modulePoints {
+  class moduleMousePoints {
     constructor(program) {
       this.program = program;
       this.points = program.createAndSetElement("g", program.scaledSVG, {"class": "pointGroup"});
-      program.modes.push("ADD", "REMOVE");
-      program.modeMenus["ADD"] = null;
-      program.modeMenus["REMOVE"] = null;
+      this.pointPositions = {};
+      program.modes.push("POINTS");
+      program.modeMenus["POINTS"] = null;
     }
 
     preparation(program) {
       const self = this;
-      program.addEventListeners(program.staticSVG, [
-        {type: "mousedown", handler: addPoints}, {type: "mousedown", handler: removePoints},
-        {type: "touchstart", handler: addPoints}, {type: "touchstart", handler: removePoints}]);
+      program.staticSVG.addEventListener("mousedown", addPoints);
 
       function addPoints(event) {
-        if(program.currentMode != "ADD") return null;
-        event = event.type == "mousedown" ? event : event.touches[0];
+        if(program.currentMode != "POINTS") return null;
         //convert mouse coordinates to svg coordinates to nearest grid coordinate.
         const sVGPoint = program.transformToSVGPoint(program.scaledSVG, event);
         const gridPoint = program.nearestGridPoint(sVGPoint);
-        const roundedSVGPoint = program.gridToSVGPoint(gridPoint);
-
-        let circle = program.createAndSetElement("circle", self.points,
-          {r: '2', cx: roundedSVGPoint.x, cy: roundedSVGPoint.y, class: "point",
-          style: "fill: white; stroke: black; stroke-width: 1"});
+        const gridPointKey = `${gridPoint.x},${gridPoint.y}`;
+        if(self.pointPositions.hasOwnProperty(gridPointKey)) {
+          //remove element and then delete key
+          self.pointPositions[gridPointKey].remove();
+          delete self.pointPositions[gridPointKey];
+        } else {
+          //get actual svg coordinates and create circle at them.
+          const roundedSVGPoint = program.gridToSVGPoint(gridPoint);
+          self.pointPositions[gridPointKey] = program.createAndSetElement("circle", self.points,
+            {r: '2', cx: roundedSVGPoint.x, cy: roundedSVGPoint.y, class: "point",
+            style: "fill: white; stroke: black; stroke-width: 1"});;
+        }
       }
-      function removePoints(event) {
-        if(program.currentMode != "REMOVE") return null;
-        if(event.target.classList.contains("point")) event.target.remove();
+    }
+  }
+
+  /*Method moduleTouchPoints
+   *Parameters: null
+   *Description: install setPoints
+   *Return: null
+   */
+  class moduleTouchPoints {
+    constructor(program) {
+      this.program = program;
+      //Check to see if another already exists, and grab it.
+      this.points = program.createAndSetElement("g", program.scaledSVG, {"class": "pointGroup"});
+      this.pointPositions = {};
+      program.modes.push("POINTS");
+      program.modeMenus["POINTS"] = program.createAndSetElement("g", program.staticSVG, {id: "pointsMenu"});
+      this.targetLines = [];
+      for(let i = 0; i < 5; ++i) {
+        this.targetLines.push(program.createAndSetElement("line", program.modeMenus["POINTS"],
+          {style: "stroke: red; stroke-width: 1;"}));
+      }
+      this.target = this.program.createAndSetElement("circle", program.modeMenus["POINTS"],
+        {r: 1, style: "fill: red; stroke: white; stroke-width: 1.5;"});
+      this.targetPosition = {x: 0, y: 0};
+    }
+
+    preparation(program) {
+      const self = this;
+      program.staticSVG.addEventListener("touchstart", touchStart);
+      program.staticSVG.addEventListener("touchmove", touchMid);
+      program.staticSVG.addEventListener("touchend", touchEnd);
+      program.staticSVG.addEventListener("touchcancel", touchEnd);
+
+      let readyForPoints = false;
+      function touchStart(event) {
+        if(program.currentMode != "POINTS") return null;
+        if(event.touches.length > 1) readyForPoints = true;
+      }
+      function touchMid(event) {
+        if(!readyForPoints) return null;
+        let meanX = 0, meanY = 0;
+        for(let i = 0; i < 5; ++i) {
+          meanX += event.touches[i].clientX;
+          meanY += event.touches[i].clientY;
+          this.targetLines[i].setAttributeNS(null, "x1", event.touches[i].clientX);
+          this.targetLines[i].setAttributeNS(null, "y1", event.touches[i].clientY);
+        }
+        meanX /= event.touches.length;
+        meanY /= event.touches.length;
+        for(let i = 0; i < 5; ++i) {
+          this.targetLines[i].setAttributeNS(null, "x2", meanX);
+          this.targetLines[i].setAttributeNS(null, "y2", meanY);
+        }
+        const sVGPoint = program.transformToSVGPoint(program.scaledSVG, event);
+        const gridPoint = program.nearestGridPoint(sVGPoint);
+        this.targetPosition = gridPoint;
+        const roundedSVGPoint = program.gridToSVGPoint(gridPoint);
+        program.setAttributesNS(self.target, {cx: roundedSVGPoint.x, cy: roundedSVGPoint.y});
+      }
+      function touchEnd(event) {
+        if(!readyForPoints) return null;
+        const gridPointKey = `${this.targetPosition.x},${this.targetPosition.y}`;
+        if(self.pointPositions.hasOwnProperty(gridPointKey)) {
+          //remove element and then delete key
+          self.pointPositions[gridPointKey].remove();
+          delete self.pointPositions[gridPointKey];
+        } else {
+          //get actual svg coordinates and create circle at them.
+          const roundedSVGPoint = program.gridToSVGPoint(gridPointKey);
+          self.pointPositions[gridPointKey] = program.createAndSetElement("circle", self.points,
+            {r: '2', cx: roundedSVGPoint.x, cy: roundedSVGPoint.y, class: "point",
+            style: "fill: white; stroke: black; stroke-width: 1"});;
+        }
       }
     }
   }
@@ -324,7 +398,8 @@
   exports.moduleMenu = moduleMenu;
   exports.moduleMove = moduleMove;
   exports.moduleVerticalZoom = moduleVerticalZoom;
-  exports.modulePoints = modulePoints;
+  exports.moduleMousePoints = moduleMousePoints;
+  exports.moduleTouchPoints = moduleMousePoints;
   exports.moduleCenterMarker = moduleCenterMarker;
   exports.__esModule = true;
 }));

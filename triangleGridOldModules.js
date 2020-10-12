@@ -48,7 +48,7 @@
       const newPt = program.transformToSVGPoint(program.scaledSVG, event);
       return Math.hypot(newPt.x - (program.transform._viewBox.x + program.transform._viewBox.width / 2),
         newPt.y - (program.transform._viewBox.y + program.transform._viewBox.height / 2));
-    }
+      }
 
       //get distance from current screen center.
       function getDistanceFromStaticSVGCenter(event) {
@@ -92,7 +92,47 @@
     }
   }
 
+  /*Method moduleTwoModesPoints
+   *Parameters: null
+   *Description: install setPoints
+   *Return: null
+   */
+  class moduleTwoModesPoints {
+    constructor(program) {
+      this.program = program;
+      this.points = program.createAndSetElement("g", program.scaledSVG, {"class": "pointGroup"});
+      program.modes.push("ADD", "REMOVE");
+      program.modeMenus["ADD"] = null;
+      program.modeMenus["REMOVE"] = null;
+    }
+
+    preparation(program) {
+      const self = this;
+      program.addEventListeners(program.staticSVG, [
+        {type: "mousedown", handler: addPoints}, {type: "mousedown", handler: removePoints},
+        {type: "touchstart", handler: addPoints}, {type: "touchstart", handler: removePoints}]);
+
+      function addPoints(event) {
+        if(program.currentMode != "ADD") return null;
+        event = event.type == "mousedown" ? event : event.touches[0];
+        //convert mouse coordinates to svg coordinates to nearest grid coordinate.
+        const sVGPoint = program.transformToSVGPoint(program.scaledSVG, event);
+        const gridPoint = program.nearestGridPoint(sVGPoint);
+        const roundedSVGPoint = program.gridToSVGPoint(gridPoint);
+
+        let circle = program.createAndSetElement("circle", self.points,
+          {r: '2', cx: roundedSVGPoint.x, cy: roundedSVGPoint.y, class: "point",
+          style: "fill: white; stroke: black; stroke-width: 1"});
+      }
+      function removePoints(event) {
+        if(program.currentMode != "REMOVE") return null;
+        if(event.target.classList.contains("point")) event.target.remove();
+      }
+    }
+  }
+
   //Fill global or exports depending on import method
   exports.moduleAroundCenterZoom = moduleAroundCenterZoom;
+  exports.moduleTwoModesPoints = moduleTwoModesPoints;
   exports.__esModule = true;
 }));

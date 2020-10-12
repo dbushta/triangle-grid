@@ -61,15 +61,46 @@
         <h2 class="outLineBlock blueBackground">Zoom Module, starts zoomed halfway, click and drag towards/away from center.</h2>
         <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
       </div>
+
+      <div id="sVG2">
+        <section class="outLineBlock blueBackground">Points Module,</br>
+          ADD mode: click on grid to add.</br>
+          REMOVE mode: click on point to remove.</br>
+          Difficult on touchscreens, and requires a way to change between adding and removing.</h2>
+          <div id="radioManager">
+            <input type="radio" name="externalControl" value="ADD">ADD</input>
+            <input type="radio" name="externalControl" value="REMOVE">REMOVE</input>
+          </div>
+        </section>
+        </br>
+        <svg class="addRemoveSVG outLineBlock whiteBackground" height="300" width="500"></svg>
+      </div>
     </div>
 
     <script>
       //Hide anonymous function and variables from global space
       (() => {//Comment this line and the next to unhide
+        //Make a static node list, bc triangle Grid makes additional SVGs.
+        const allSVGs = document.querySelectorAll(".showCaseSVG");
+        const options = [modules.moduleAroundCenterZoom];
+        const menuOptions = [options];
+        const menuModes = ["ZOOM"];
+
+        //Background svg
         new triGrid.triangleGrid(document.querySelector(".backgroundSVG"), 25, null)
-        let zoomSVG = new triGrid.triangleGrid(document.querySelector(".showCaseSVG"), 5, [modules.moduleAroundCenterZoom]);
-        //Make sure to set mode to triGrid's current mode if there are no menus to handle it.
-        zoomSVG.currentMode = "ZOOM";
+
+        //create a grid class for every svg.
+        let allGrids = [];
+        for(let i = 0; i < allSVGs.length; i++) {
+          allGrids.push(new triGrid.triangleGrid(allSVGs[i], 5, menuOptions[i], menuModes[i]));
+        }
+
+        //modulePoints
+        const addRemoveSVG = new triGrid.triangleGrid(
+          document.querySelector(".addRemoveSVG"), 5, [modules.moduleTwoModesPoints]);
+        document.getElementById("radioManager").addEventListener("click", (event) => {
+          addRemoveSVG.currentMode = event.target.value;
+        });
       })();//Comment this line and previous to unhide
 
     </script>
