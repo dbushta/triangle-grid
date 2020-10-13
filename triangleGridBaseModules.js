@@ -367,7 +367,7 @@
         console.log("end touch");
         if(!readyForPoints) return null;
         readyForPoints = false;
-        const gridPointKey = `${this.targetPosition.x},${this.targetPosition.y}`;
+        const gridPointKey = `${self.targetPosition.x},${self.targetPosition.y}`;
         if(self.pointPositions.hasOwnProperty(gridPointKey)) {
           //remove element and then delete key
           self.pointPositions[gridPointKey].remove();
