@@ -347,13 +347,16 @@
       }
       function touchStart(event) {
         console.log("start touch");
+        event.preventDefault();
         if(program.currentMode != "POINTS") return null;
         //Don't allow more than the average five fingers on screen.
         setLineVisibility(event.touches.length);
         touchActive = true;
+        touchMid(event);
       }
       function touchMid(event) {
         console.log("mid touch");
+        event.preventDefault();
         if(!touchActive) return null;
         //create the average screen touch on viewport.
         let mean = {x: 0, y: 0};
