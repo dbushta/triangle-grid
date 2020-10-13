@@ -341,7 +341,6 @@
         //Don't allow more than the average five fingers on screen.
         if(totalFingers > 5) return null;
         self.targetLines[totalFingers].style.display = "block";
-        //self.target.style.display = "block";
         totalFingers++;
       }
       function touchMid(event) {
@@ -352,22 +351,19 @@
           mean.x += event.touches[i].clientX;
           mean.y += event.touches[i].clientY;
           //Set coordinates for the line ends at touches on static svg.
-          const staticSVGPoint = program.transformToSVGPoint(program.staticSVG, event.touches[i]);
-          console.log(staticSVGPoint);
+          let staticSVGPoint = program.transformToSVGPoint(program.staticSVG, event.touches[i]);
           program.setAttributesNS(self.targetLines[i], {x1: staticSVGPoint.x, y1: staticSVGPoint.y});
         }
         mean.x /= event.touches.length;
         mean.y /= event.touches.length;
-        const staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
         //set coordinates for the other line ends at mean touch
         for(let i = 0, iMax = event.touches.length; i < iMax && i < 5; ++i) {
+          let staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
           program.setAttributesNS(self.targetLines[i], {x1: staticSVGPoint.x, y1: staticSVGPoint.y});
         }
         //use the mean like a single touch event.
-        const gridPoint = program.nearestGridPoint(staticSVGPoint);
-        self.targetPosition = gridPoint;
-        //const roundedSVGPoint = program.gridToSVGPoint(gridPoint);
-        //program.setAttributesNS(self.target, {cx: roundedSVGPoint.x, cy: roundedSVGPoint.y});
+        const staticSVGPoint = program.transformToSVGPoint(program.scaledSVG, mean);
+        self.targetPosition = program.nearestGridPoint(staticSVGPoint);
       }
       function touchEnd(event) {
         console.log("end touch");
@@ -390,7 +386,6 @@
         for(const targetLine of self.targetLines) {
           targetLine.style.display = "none";
         }
-        //self.target.style.display = "none";
       }
     }
   }
