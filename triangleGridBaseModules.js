@@ -334,17 +334,19 @@
       program.staticSVG.addEventListener("touchend", touchEnd);
       program.staticSVG.addEventListener("touchcancel", touchEnd);
 
-      let totalFingers = 0;
+      let touchActive = false;
       function touchStart(event) {
         console.log("start touch");
         if(program.currentMode != "POINTS") return null;
         //Don't allow more than the average five fingers on screen.
-        if(totalFingers > 5) return null;
-        self.targetLines[totalFingers].style.display = "block";
-        totalFingers++;
+        for(let i = 0, iMax = event.touches.length; i < iMax && i < 5; ++i) {
+          self.targetLines[i].style.display = "block";
+        }
+        if(event.touches.length) touchActive = true;
       }
       function touchMid(event) {
         console.log("mid touch");
+        if(!totalFingers) return null;
         //create the average screen touch on viewport.
         let mean = {x: 0, y: 0};
         for(let i = 0, iMax = event.touches.length; i < iMax && i < 5; ++i) {
@@ -367,9 +369,8 @@
       }
       function touchEnd(event) {
         console.log("end touch");
-        //Make sure additional fingers don't interfere.
-        if(totalFingers > 5) return null;
-        totalFingers = 0;
+        if(!touchActive) return null;
+        touchActive = false;
         const gridPointKey = `${self.targetPosition.x},${self.targetPosition.y}`;
         if(self.pointPositions.hasOwnProperty(gridPointKey)) {
           //remove element and then delete key
