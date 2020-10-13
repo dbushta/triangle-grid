@@ -336,11 +336,13 @@
 
       let readyForPoints = false;
       function touchStart(event) {
+        console.log("start touch");
         if(program.currentMode != "POINTS") return null;
         readyForPoints = true;
       }
       function touchMid(event) {
-        if(!readyForPoints) return null;
+        console.log("mid touch");
+        //if(!readyForPoints) return null;
         if(event.touches.length < 2) return null;
         let meanX = 0, meanY = 0;
         for(let i = 0; i < 5; ++i) {
@@ -362,7 +364,9 @@
         program.setAttributesNS(self.target, {cx: roundedSVGPoint.x, cy: roundedSVGPoint.y});
       }
       function touchEnd(event) {
+        console.log("end touch");
         if(!readyForPoints) return null;
+        readyForPoints = false;
         const gridPointKey = `${this.targetPosition.x},${this.targetPosition.y}`;
         if(self.pointPositions.hasOwnProperty(gridPointKey)) {
           //remove element and then delete key
