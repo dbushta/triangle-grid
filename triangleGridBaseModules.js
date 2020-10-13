@@ -345,7 +345,7 @@
         if(!readyForPoints) return null;
         //if(event.touches.length < 2) return null;
         let meanX = 0, meanY = 0;
-        for(let i = 0; i < 5; ++i) {
+        for(let i = 0, iMax = event.touches.length; i < iMax && i < 5; ++i) {
           meanX += event.touches[i].clientX;
           meanY += event.touches[i].clientY;
           self.targetLines[i].setAttributeNS(null, "x1", event.touches[i].clientX);
@@ -353,7 +353,7 @@
         }
         meanX /= event.touches.length;
         meanY /= event.touches.length;
-        for(let i = 0; i < 5; ++i) {
+        for(let i = 0, iMax = event.touches.length; i < iMax && i < 5; ++i) {
           self.targetLines[i].setAttributeNS(null, "x2", meanX);
           self.targetLines[i].setAttributeNS(null, "y2", meanY);
         }
