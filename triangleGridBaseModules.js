@@ -359,7 +359,7 @@
         //set coordinates for the other line ends at mean touch
         for(let i = 0, iMax = event.touches.length; i < iMax && i < 5; ++i) {
           let staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
-          program.setAttributesNS(self.targetLines[i], {x1: staticSVGPoint.x, y1: staticSVGPoint.y});
+          program.setAttributesNS(self.targetLines[i], {x2: staticSVGPoint.x, y2: staticSVGPoint.y});
         }
         //use the mean like a single touch event.
         const staticSVGPoint = program.transformToSVGPoint(program.scaledSVG, mean);
