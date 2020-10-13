@@ -323,7 +323,7 @@
           {style: "stroke: red; stroke-width: 1;"}));
       }
       this.target = this.program.createAndSetElement("circle", program.modeMenus["POINTS"],
-        {r: 1, style: "fill: red; stroke: white; stroke-width: 1.5;"});
+        {r: 1, style: "fill: red; stroke: white; stroke-width: 1;"});
       this.targetPosition = {x: 0, y: 0};
     }
 
@@ -346,8 +346,6 @@
       }
       function touchMid(event) {
         console.log("mid touch");
-        //Make sure additional fingers don't interfere.
-        if(totalFingers > 5) return null;
         //create the average screen touch on viewport.
         let mean = {x: 0, y: 0};
         for(let i = 0, iMax = event.touches.length; i < iMax && i < 5; ++i) {
@@ -355,17 +353,17 @@
           mean.y += event.touches[i].clientY;
           //Set coordinates for the line ends at touches on static svg.
           const staticSVGPoint = program.transformToSVGPoint(program.staticSVG, event.touches[i]);
+          console.log(staticSVGPoint);
           program.setAttributesNS(self.targetLines[i], {x1: staticSVGPoint.x, y1: staticSVGPoint.y});
         }
         mean.x /= event.touches.length;
         mean.y /= event.touches.length;
+        const staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
         //set coordinates for the other line ends at mean touch
         for(let i = 0, iMax = event.touches.length; i < iMax && i < 5; ++i) {
-          const staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
           program.setAttributesNS(self.targetLines[i], {x1: staticSVGPoint.x, y1: staticSVGPoint.y});
         }
         //use the mean like a single touch event.
-        const staticSVGPoint = program.transformToSVGPoint(program.scaledSVG, mean);
         const gridPoint = program.nearestGridPoint(staticSVGPoint);
         self.targetPosition = gridPoint;
         //const roundedSVGPoint = program.gridToSVGPoint(gridPoint);
