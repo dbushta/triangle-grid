@@ -273,7 +273,7 @@
   class moduleMousePoints {
     constructor(program) {
       this.program = program;
-      this.points = program.createAndSetElement("g", program.scaledSVG, {"class": "pointGroup"});
+      this.points = program.createAndSetElement("g", program.scaledSVG, {class: "pointGroup"});
       this.pointPositions = {};
       program.modes.push("POINTS");
       program.modeMenus["POINTS"] = null;
@@ -313,7 +313,7 @@
     constructor(program) {
       this.program = program;
       //Check to see if another already exists, and grab it.
-      this.points = program.createAndSetElement("g", program.scaledSVG, {"class": "pointGroup"});
+      this.points = program.createAndSetElement("g", program.scaledSVG, {class: "pointGroup"});
       this.pointPositions = {};
       program.modes.push("POINTS");
       program.modeMenus["POINTS"] = program.createAndSetElement("g", program.staticSVG, {id: "pointsMenu"});
@@ -355,21 +355,21 @@
           mean.y += event.touches[i].clientY;
           //Set coordinates for the line ends at touches on static svg.
           const staticSVGPoint = program.transformToSVGPoint(program.staticSVG, event.touches[i]);
-          program.setAttributesNS(self.targetLines[i], {x1: staticSVGPoint.x, y1: staticSVGPoint});
+          program.setAttributesNS(self.targetLines[i], {x1: staticSVGPoint.x, y1: staticSVGPoint.y});
         }
         mean.x /= event.touches.length;
         mean.y /= event.touches.length;
         //set coordinates for the other line ends at mean touch
         for(let i = 0, iMax = event.touches.length; i < iMax && i < 5; ++i) {
           const staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
-          program.setAttributesNS(self.targetLines[i], {x1: staticSVGPoint.x, y1: staticSVGPoint});
+          program.setAttributesNS(self.targetLines[i], {x1: staticSVGPoint.x, y1: staticSVGPoint.y});
         }
         //use the mean like a single touch event.
         const staticSVGPoint = program.transformToSVGPoint(program.scaledSVG, mean);
         const gridPoint = program.nearestGridPoint(staticSVGPoint);
         self.targetPosition = gridPoint;
         //const roundedSVGPoint = program.gridToSVGPoint(gridPoint);
-        p//rogram.setAttributesNS(self.target, {cx: roundedSVGPoint.x, cy: roundedSVGPoint.y});
+        //program.setAttributesNS(self.target, {cx: roundedSVGPoint.x, cy: roundedSVGPoint.y});
       }
       function touchEnd(event) {
         console.log("end touch");
