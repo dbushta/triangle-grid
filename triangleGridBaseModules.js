@@ -399,7 +399,7 @@
   exports.moduleMove = moduleMove;
   exports.moduleVerticalZoom = moduleVerticalZoom;
   exports.moduleMousePoints = moduleMousePoints;
-  exports.moduleTouchPoints = moduleMousePoints;
+  exports.moduleTouchPoints = moduleTouchPoints;
   exports.moduleCenterMarker = moduleCenterMarker;
   exports.__esModule = true;
 }));

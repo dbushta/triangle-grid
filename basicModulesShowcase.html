@@ -72,10 +72,12 @@
         <h2 class="outLineBlock blueBackground">Move and CenterMarker Module, click and drag to move.</h2>
         <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
       </div>
+
       <div id="sVG2">
-        <h2 class="outLineBlock blueBackground">Zoom Module, slide up or down, WIP.</h2>
+        <h2 class="outLineBlock blueBackground">Zoom Module, slide up or down.</h2>
         <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
       </div>
+
       <div id="sVG3">
         <div class="outLineBlock blueBackground">
           <h2>Points Mouse Module, click on grid to add and click point to remove.</h2>
@@ -84,15 +86,21 @@
 
         <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
       </div>
+
       <div id="sVG4">
         <div class="outLineBlock blueBackground">
           <h2>Points Touch Module, 2+ fingers, currently testing.</h2>
           <p>For touch screen only.</p>
         </div>
-
         <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
       </div>
+
       <div id="sVG5">
+        <h2 class="outLineBlock blueBackground">MENU Module, working with all modules</h2>
+        <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
+      </div>
+
+      <div id="sVG6">
         <section class="outLineBlock blueBackground">
           <h2>Grid controlled external to svg by radio buttons</h2>
           <div id="radioManager">
@@ -102,12 +110,9 @@
           </div>
         </section>
         </br>
-        <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
+        <svg class="outsideButtonSVG outLineBlock whiteBackground" height="300" width="500"></svg>
       </div>
-      <div id="sVG6">
-        <h2 class="outLineBlock blueBackground">MENU Module, working with all modules</h2>
-        <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
-      </div>
+
     </div>
 
     <script>
@@ -115,11 +120,10 @@
       (() => {//Comment this line and the next to unhide
         //Make a static node list, bc triangle Grid makes additional SVGs.
         const allSVGs = document.querySelectorAll(".showCaseSVG");
-        const options = [modules.moduleCenterMarker, modules.moduleMove,
-          modules.moduleVerticalZoom, modules.moduleMousePoints, modules.moduleMenu];
-        const menuOptions = [options.slice(0, 2), [options[2]], [options[3]],
-          options.slice(0, 4), options];
-        const menuModes = ["MOVE", "ZOOM", "POINTS", null, "MENU"];
+        const options = [modules.moduleCenterMarker, modules.moduleMove, modules.moduleVerticalZoom,
+          modules.moduleMousePoints, modules.moduleMenu];
+        const menuOptions = [options.slice(0, 2), [options[2]], [options[3]], [modules.moduleTouchPoints], options];
+        const menuModes = ["MOVE", "ZOOM", "POINTS", "POINTS", "MENU"];
 
         //create a grid class for every svg.
         let allGrids = [new triGrid.triangleGrid(document.querySelector(".backgroundSVG"), 25, null)];
@@ -128,21 +132,21 @@
         }
 
         //Setup for outside svg control
-        //Hide associated mode menu
-        for(let i = 0, iLen = allGrids[4].modes.length; i < iLen; ++i) {
-          if(allGrids[4].modeMenus[allGrids[4].modes[i]]) {
-            allGrids[4].modeMenus[allGrids[4].modes[i]].style.display = "none";
-          }
+        let outsideButtonSVG = new triGrid.triangleGrid(document.querySelector(".outsideButtonSVG"), 5,
+          [modules.moduleCenterMarker, modules.moduleMove, modules.moduleVerticalZoom, modules.moduleMousePoints]);
+        //Hide associated mode menu for outside svg control
+        for(const mode of outsideButtonSVG.modes) {
+          if(outsideButtonSVG.modeMenus[mode]) outsideButtonSVG.modeMenus[mode].style.display = "none";
         }
         //Go into grid class and change mode using closures
         document.getElementById("radioManager").addEventListener("click", (event) => {
-          if(allGrids[4].modeMenus[allGrids[4].currentMode]) {
-            allGrids[4].modeMenus[allGrids[4].currentMode].style.display = "none";
+          if(outsideButtonSVG.modeMenus[outsideButtonSVG.currentMode]) {
+            outsideButtonSVG.modeMenus[outsideButtonSVG.currentMode].style.display = "none";
           }
-          allGrids[4].currentMode = event.target.value;
+          outsideButtonSVG.currentMode = event.target.value;
 
-          if(allGrids[4].modeMenus[allGrids[4].currentMode]) {
-            allGrids[4].modeMenus[allGrids[4].currentMode].style.display = "block";
+          if(outsideButtonSVG.modeMenus[outsideButtonSVG.currentMode]) {
+            outsideButtonSVG.modeMenus[outsideButtonSVG.currentMode].style.display = "block";
           }
         });
       })();//Comment this line and previous to unhide
