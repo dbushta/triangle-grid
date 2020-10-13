@@ -318,7 +318,8 @@
       program.modes.push("POINTS");
       program.modeMenus["POINTS"] = program.createAndSetElement("g", program.staticSVG, {id: "pointsMenu"});
       this.targetLines = [];
-      for(let i = 0; i < 5; ++i) {
+      this.maxFingers = 5;
+      for(let i = 0; i < this.maxFingers; ++i) {
         this.targetLines.push(program.createAndSetElement("line", program.modeMenus["POINTS"],
           {style: "stroke: red; stroke-width: 1;"}));
       }
@@ -335,21 +336,28 @@
       program.staticSVG.addEventListener("touchcancel", touchEnd);
 
       let touchActive = false;
+      //if total > 5 only 5 will be visible, if total = 0 none will be visible.
+      function setLineVisibility(total) {
+        for(let i = 0; i < total && i < self.maxFingers; ++i) {
+          self.targetLines[i].style.display = "block";
+        }
+        for(let i = total; i < self.maxFingers; ++i) {
+          self.targetLines[i].style.display = "none";
+        }
+      }
       function touchStart(event) {
         console.log("start touch");
         if(program.currentMode != "POINTS") return null;
         //Don't allow more than the average five fingers on screen.
-        for(let i = 0, iMax = event.touches.length; i < iMax && i < 5; ++i) {
-          self.targetLines[i].style.display = "block";
-        }
-        if(event.touches.length) touchActive = true;
+        setLineVisibility(event.touches.length);
+        touchActive = true;
       }
       function touchMid(event) {
         console.log("mid touch");
-        if(!totalActive) return null;
+        if(!touchActive) return null;
         //create the average screen touch on viewport.
         let mean = {x: 0, y: 0};
-        for(let i = 0, iMax = event.touches.length; i < iMax && i < 5; ++i) {
+        for(let i = 0, iMax = event.touches.length; i < iMax && i < self.maxFingers; ++i) {
           mean.x += event.touches[i].clientX;
           mean.y += event.touches[i].clientY;
           //Set coordinates for the line ends at touches on static svg.
@@ -359,7 +367,7 @@
         mean.x /= event.touches.length;
         mean.y /= event.touches.length;
         //set coordinates for the other line ends at mean touch
-        for(let i = 0, iMax = event.touches.length; i < iMax && i < 5; ++i) {
+        for(let i = 0, iMax = event.touches.length; i < iMax && i < self.maxFingers; ++i) {
           let staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
           program.setAttributesNS(self.targetLines[i], {x2: staticSVGPoint.x, y2: staticSVGPoint.y});
         }
@@ -384,9 +392,7 @@
             style: "fill: white; stroke: black; stroke-width: 1"});;
         }
         //Hide all the lines, to let user know to restart.
-        for(const targetLine of self.targetLines) {
-          targetLine.style.display = "none";
-        }
+        setLineVisibility(0);
       }
     }
   }
