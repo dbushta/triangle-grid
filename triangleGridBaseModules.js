@@ -334,39 +334,43 @@
       program.staticSVG.addEventListener("touchend", touchEnd);
       program.staticSVG.addEventListener("touchcancel", touchEnd);
 
-      let readyForPoints = false;
+      let totalFingers = 0;
       function touchStart(event) {
         console.log("start touch");
         if(program.currentMode != "POINTS") return null;
-        if(event.touches.length < 2) return null;
-        readyForPoints = true;
+        totalFingers++;
       }
       function touchMid(event) {
         console.log("mid touch");
         if(!readyForPoints) return null;
-        let meanX = 0, meanY = 0;
+        //create the average screen coordinates.
+        let mean = {x: 0, y: 0};
         for(let i = 0, iMax = event.touches.length; i < iMax && i < 5; ++i) {
-          const sVGPoint = program.transformToSVGPoint(program.scaledSVG, event.touches[i]);
-          meanX += sVGPoint.x;
-          meanY += sVGPoint.y;
-          self.targetLines[i].setAttributeNS(null, "x1", sVGPoint.x);
-          self.targetLines[i].setAttributeNS(null, "y1", sVGPoint.y);
+          mean.x += event.touches[i].clientX;
+          mean.y += event.touches[i].clientY;
+          //Set coordinates for the line ends at touches.
+          const staticSVGPoint = program.transformToSVGPoint(program.staticSVG, event.touches[i]);
+          self.targetLines[i].setAttributeNS(null, "x1", staticSVGPoint.x);
+          self.targetLines[i].setAttributeNS(null, "y1", staticSVGPoint.y);
         }
-        meanX /= event.touches.length;
-        meanY /= event.touches.length;
+        mean.x /= event.touches.length;
+        mean.y /= event.touches.length;
+        //set coordinates for the other line ends at touches
         for(let i = 0, iMax = event.touches.length; i < iMax && i < 5; ++i) {
-          self.targetLines[i].setAttributeNS(null, "x2", meanX);
-          self.targetLines[i].setAttributeNS(null, "y2", meanY);
+          const staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
+          self.targetLines[i].setAttributeNS(null, "x2", staticSVGPoint.x);
+          self.targetLines[i].setAttributeNS(null, "y2", staticSVGPoint.y);
         }
-        const gridPoint = program.nearestGridPoint({x: meanX, y: meanY});
+        //use the mean like a single touch event.
+        const staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
+        const gridPoint = program.nearestGridPoint(staticSVGPoint);
         self.targetPosition = gridPoint;
         const roundedSVGPoint = program.gridToSVGPoint(gridPoint);
         program.setAttributesNS(self.target, {cx: roundedSVGPoint.x, cy: roundedSVGPoint.y});
       }
       function touchEnd(event) {
         console.log("end touch");
-        if(!readyForPoints) return null;
-        readyForPoints = false;
+        totalFingers = 0;
         const gridPointKey = `${self.targetPosition.x},${self.targetPosition.y}`;
         if(self.pointPositions.hasOwnProperty(gridPointKey)) {
           //remove element and then delete key
@@ -378,6 +382,10 @@
           self.pointPositions[gridPointKey] = program.createAndSetElement("circle", self.points,
             {r: '2', cx: roundedSVGPoint.x, cy: roundedSVGPoint.y, class: "point",
             style: "fill: white; stroke: black; stroke-width: 1"});;
+        }
+        //Hide all the lines, to let user know to restart.
+        for(targetLine of self.targetLines) {
+          targetLine.style.display = "none";
         }
       }
     }
