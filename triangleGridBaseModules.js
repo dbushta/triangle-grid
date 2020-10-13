@@ -347,7 +347,6 @@
         }
       }
       function touchStart(event) {
-        console.log("start touch");
         event.preventDefault();
         if(program.currentMode != "POINTS") return null;
         //Don't allow more than the average five fingers on screen.
@@ -356,7 +355,6 @@
         touchMid(event);
       }
       function touchMid(event) {
-        console.log("mid touch");
         event.preventDefault();
         if(!touchActive) return null;
         //create the average screen touch on viewport.
@@ -370,18 +368,17 @@
         }
         mean.x /= event.touches.length;
         mean.y /= event.touches.length;
-        program.setAttributesNS(self.targetCircle, {cx: mean.x, cy: mean.y});
         //set coordinates for the other line ends at mean touch
+        const staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
+        program.setAttributesNS(self.targetCircle, {cx: staticSVGPoint.x, cy: staticSVGPoint.y});
         for(let i = 0, iMax = event.touches.length; i < iMax && i < self.maxFingers; ++i) {
-          let staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
           program.setAttributesNS(self.targetLines[i], {x2: staticSVGPoint.x, y2: staticSVGPoint.y});
         }
         //use the mean like a single touch event.
-        const staticSVGPoint = program.transformToSVGPoint(program.scaledSVG, mean);
-        self.targetPosition = program.nearestGridPoint(staticSVGPoint);
+        const scaledSVGPoint = program.transformToSVGPoint(program.scaledSVG, mean);
+        self.targetPosition = program.nearestGridPoint(scaledSVGPoint);
       }
       function touchEnd(event) {
-        console.log("end touch");
         if(!touchActive) return null;
         touchActive = false;
         const gridPointKey = `${self.targetPosition.x},${self.targetPosition.y}`;
