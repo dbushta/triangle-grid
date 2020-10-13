@@ -379,13 +379,13 @@
           delete self.pointPositions[gridPointKey];
         } else {
           //get actual svg coordinates and create circle at them.
-          const roundedSVGPoint = program.gridToSVGPoint(gridPointKey);
+          const roundedSVGPoint = program.gridToSVGPoint(self.targetPosition);
           self.pointPositions[gridPointKey] = program.createAndSetElement("circle", self.points,
             {r: '2', cx: roundedSVGPoint.x, cy: roundedSVGPoint.y, class: "point",
             style: "fill: white; stroke: black; stroke-width: 1"});;
         }
         //Hide all the lines, to let user know to restart.
-        for(targetLine of self.targetLines) {
+        for(const targetLine of self.targetLines) {
           targetLine.style.display = "none";
         }
       }
