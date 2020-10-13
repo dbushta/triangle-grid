@@ -337,10 +337,11 @@
       let readyForPoints = false;
       function touchStart(event) {
         if(program.currentMode != "POINTS") return null;
-        if(event.touches.length > 1) readyForPoints = true;
+        readyForPoints = true;
       }
       function touchMid(event) {
         if(!readyForPoints) return null;
+        if(event.touches.length < 2) return null;
         let meanX = 0, meanY = 0;
         for(let i = 0; i < 5; ++i) {
           meanX += event.touches[i].clientX;
