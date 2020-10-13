@@ -324,7 +324,7 @@
           {style: "stroke: red; stroke-width: 1;"}));
       }
       this.targetCircle = this.program.createAndSetElement("circle", program.modeMenus["POINTS"],
-        {r: 1, style: "fill: red; stroke: white; stroke-width: 1;"});
+        {r: 1, style: "fill: red;"});
       this.targetPosition = {x: 0, y: 0};
     }
 
