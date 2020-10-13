@@ -338,7 +338,7 @@
       let touchActive = false;
       //if total > 5 only 5 will be visible, if total = 0 none will be visible.
       function setLineVisibility(total) {
-        this.targetCircle.style.display = total ? "block" : "none";
+        self.targetCircle.style.display = total ? "block" : "none";
         for(let i = 0; i < total && i < self.maxFingers; ++i) {
           self.targetLines[i].style.display = "block";
         }
