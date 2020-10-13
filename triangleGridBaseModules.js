@@ -346,7 +346,7 @@
       }
       function touchMid(event) {
         console.log("mid touch");
-        if(!totalFingers) return null;
+        if(!totalActive) return null;
         //create the average screen touch on viewport.
         let mean = {x: 0, y: 0};
         for(let i = 0, iMax = event.touches.length; i < iMax && i < 5; ++i) {
