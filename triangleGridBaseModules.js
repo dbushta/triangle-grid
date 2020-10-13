@@ -338,18 +338,19 @@
       function touchStart(event) {
         console.log("start touch");
         if(program.currentMode != "POINTS") return null;
+        if(event.touches.length < 2) return null;
         readyForPoints = true;
       }
       function touchMid(event) {
         console.log("mid touch");
         if(!readyForPoints) return null;
-        //if(event.touches.length < 2) return null;
         let meanX = 0, meanY = 0;
         for(let i = 0, iMax = event.touches.length; i < iMax && i < 5; ++i) {
-          meanX += event.touches[i].clientX;
-          meanY += event.touches[i].clientY;
-          self.targetLines[i].setAttributeNS(null, "x1", event.touches[i].clientX);
-          self.targetLines[i].setAttributeNS(null, "y1", event.touches[i].clientY);
+          const sVGPoint = program.transformToSVGPoint(program.scaledSVG, event.touches[i]);
+          meanX += sVGPoint.x;
+          meanY += sVGPoint.y;
+          self.targetLines[i].setAttributeNS(null, "x1", sVGPoint.x);
+          self.targetLines[i].setAttributeNS(null, "y1", sVGPoint.y);
         }
         meanX /= event.touches.length;
         meanY /= event.touches.length;
@@ -357,8 +358,7 @@
           self.targetLines[i].setAttributeNS(null, "x2", meanX);
           self.targetLines[i].setAttributeNS(null, "y2", meanY);
         }
-        const sVGPoint = program.transformToSVGPoint(program.scaledSVG, event);
-        const gridPoint = program.nearestGridPoint(sVGPoint);
+        const gridPoint = program.nearestGridPoint({x: meanX, y: meanY});
         self.targetPosition = gridPoint;
         const roundedSVGPoint = program.gridToSVGPoint(gridPoint);
         program.setAttributesNS(self.target, {cx: roundedSVGPoint.x, cy: roundedSVGPoint.y});
