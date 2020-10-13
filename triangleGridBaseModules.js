@@ -323,7 +323,7 @@
         this.targetLines.push(program.createAndSetElement("line", program.modeMenus["POINTS"],
           {style: "stroke: red; stroke-width: 1;"}));
       }
-      this.target = this.program.createAndSetElement("circle", program.modeMenus["POINTS"],
+      this.targetCircle = this.program.createAndSetElement("circle", program.modeMenus["POINTS"],
         {r: 1, style: "fill: red; stroke: white; stroke-width: 1;"});
       this.targetPosition = {x: 0, y: 0};
     }
@@ -338,6 +338,7 @@
       let touchActive = false;
       //if total > 5 only 5 will be visible, if total = 0 none will be visible.
       function setLineVisibility(total) {
+        this.targetCircle.style.display = total ? "block" : "none";
         for(let i = 0; i < total && i < self.maxFingers; ++i) {
           self.targetLines[i].style.display = "block";
         }
@@ -369,6 +370,7 @@
         }
         mean.x /= event.touches.length;
         mean.y /= event.touches.length;
+        program.setAttributesNS(self.targetCircle, {cx: mean.x, cy: mean.y});
         //set coordinates for the other line ends at mean touch
         for(let i = 0, iMax = event.touches.length; i < iMax && i < self.maxFingers; ++i) {
           let staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
