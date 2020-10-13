@@ -49,6 +49,7 @@ Waiting to receive permission to include the names of people who helped me learn
 So far:</br>
   - [Aayush Yadav](https://github.com/aayux): inspiration for project
   - [Chris Till](https://github.com/chri55): markdown, ux, tester
+  - [Jesse Thomas](https://github.com/JesseTCS): ux, tester
 
 ### License ###
 GNU General Public License v3.0
