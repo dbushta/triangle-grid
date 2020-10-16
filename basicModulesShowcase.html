@@ -131,8 +131,8 @@
         //Make a static node list, bc triangle Grid makes additional SVGs.
         const allSVGs = document.querySelectorAll(".showCaseSVG");
         const options = [modules.moduleCenterMarker, modules.moduleMove, modules.moduleVerticalZoom,
-          modules.moduleMousePoints, modules.moduleMenu];
-        const menuOptions = [options.slice(0, 2), [options[2]], [options[3]], [modules.moduleTouchPoints], options];
+          modules.moduleMousePoints, modules.moduleTouchPoints, modules.moduleMenu];
+        const menuOptions = [options.slice(0, 2), [options[2]], [options[3]], [options[4]], options];
         const menuModes = ["MOVE", "ZOOM", "POINTS", "POINTS", "MENU"];
 
         //create a grid class for every svg.

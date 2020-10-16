@@ -273,10 +273,16 @@
   class moduleMousePoints {
     constructor(program) {
       this.program = program;
-      this.points = program.createAndSetElement("g", program.scaledSVG, {class: "pointGroup"});
+      this.points = program.staticSVG.querySelector(".pointGroup");
+      //Make sure there actually was a pointGroup.
+      if(!program.staticSVG.querySelector(".pointGroup")) {
+        this.points = program.createAndSetElement("g", program.scaledSVG, {class: "pointGroup"});
+      }
       this.pointPositions = {};
-      program.modes.push("POINTS");
-      program.modeMenus["POINTS"] = null;
+      //Try not to create doubles of the POINTS mode.
+      if(!program.modes.includes("POINTS")) program.modes.push("POINTS");
+      //Doesn't add anything to point menu, so doesn't need to check.
+      program.modeMenus["POINTS"] = program.staticSVG.querySelector(".pointsMenu");
     }
 
     preparation(program) {
@@ -312,11 +318,19 @@
   class moduleTouchPoints {
     constructor(program) {
       this.program = program;
-      //Check to see if another already exists, and grab it.
-      this.points = program.createAndSetElement("g", program.scaledSVG, {class: "pointGroup"});
+      this.points = program.staticSVG.querySelector(".pointGroup");
+      //Make sure there actually was a pointGroup
+      if(!this.points) {
+        this.points = program.createAndSetElement("g", program.scaledSVG, {class: "pointGroup"});
+      }
       this.pointPositions = {};
-      program.modes.push("POINTS");
-      program.modeMenus["POINTS"] = program.createAndSetElement("g", program.staticSVG, {id: "pointsMenu"});
+      //Try not to create doubles of the POINTS mode
+      if(!program.modes.includes("POINTS")) program.modes.push("POINTS");
+      program.modeMenus["POINTS"] = program.staticSVG.querySelector(".pointsMenu");
+      //Make sure there actually was a pointsMenu
+      if(!program.modeMenus["POINTS"]) {
+        program.modeMenus["POINTS"] = program.createAndSetElement("g", program.staticSVG, {id: "pointsMenu"});
+      }
       this.targetLines = [];
       this.maxFingers = 5;
       for(let i = 0; i < this.maxFingers; ++i) {
@@ -324,7 +338,7 @@
           {style: "stroke: red; stroke-width: 1;"}));
       }
       this.targetCircle = this.program.createAndSetElement("circle", program.modeMenus["POINTS"],
-        {r: 1.5, style: "fill: red; stroke: darkred; stroke-width: .5"});
+        {r: 1.5, style: "fill: red; stroke: darkred; stroke-width: .5; display: none;"});
       this.targetPosition = {x: 0, y: 0};
     }
 
@@ -379,6 +393,7 @@
         self.targetPosition = program.nearestGridPoint(scaledSVGPoint);
       }
       function touchEnd(event) {
+        event.preventDefault();
         if(!touchActive) return null;
         touchActive = false;
         const gridPointKey = `${self.targetPosition.x},${self.targetPosition.y}`;
