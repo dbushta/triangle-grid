@@ -361,16 +361,16 @@
         }
       }
       function touchStart(event) {
-        event.preventDefault();
         if(program.currentMode != "POINTS") return null;
+        event.preventDefault();
         //Don't allow more than the average five fingers on screen.
         setLineVisibility(event.touches.length);
         touchActive = true;
         touchMid(event);
       }
       function touchMid(event) {
-        event.preventDefault();
         if(!touchActive) return null;
+        event.preventDefault();
         //create the average screen touch on viewport.
         let mean = {x: 0, y: 0};
         for(let i = 0, iMax = event.touches.length; i < iMax && i < self.maxFingers; ++i) {
@@ -393,8 +393,8 @@
         self.targetPosition = program.nearestGridPoint(scaledSVGPoint);
       }
       function touchEnd(event) {
-        event.preventDefault();
         if(!touchActive) return null;
+        event.preventDefault();
         touchActive = false;
         const gridPointKey = `${self.targetPosition.x},${self.targetPosition.y}`;
         if(self.pointPositions.hasOwnProperty(gridPointKey)) {
