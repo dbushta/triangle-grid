@@ -132,7 +132,7 @@
         const allSVGs = document.querySelectorAll(".showCaseSVG");
         const options = [modules.moduleCenterMarker, modules.moduleMove, modules.moduleVerticalZoom,
           modules.moduleMousePoints, modules.moduleTouchPoints, modules.moduleMenu];
-        const menuOptions = [options.slice(0, 2), [options[2]], [options[3]], [options[4]], options];
+        const menuOptions = [options.slice(0, 2), [options[2]], [options[3]], [options[4]], [...options]];
         const menuModes = ["MOVE", "ZOOM", "POINTS", "POINTS", "MENU"];
 
         //create a grid class for every svg.
@@ -142,8 +142,8 @@
         }
 
         //Setup for outside svg control
-        let outsideButtonSVG = new triGrid.triangleGrid(document.querySelector(".outsideButtonSVG"), 5,
-          [modules.moduleCenterMarker, modules.moduleMove, modules.moduleVerticalZoom, modules.moduleMousePoints]);
+        let outsideButtonSVG = new triGrid.triangleGrid(
+          document.querySelector(".outsideButtonSVG"), 5, [...options.slice(0, 5)]);
         //Hide associated mode menu for outside svg control
         for(const mode of outsideButtonSVG.modes) {
           if(outsideButtonSVG.modeMenus[mode]) outsideButtonSVG.modeMenus[mode].style.display = "none";
