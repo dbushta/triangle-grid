@@ -367,11 +367,9 @@
         if(program.currentMode != "POINTS" || !touchActive) return null;
         //Prevent mouse event from going off.
         event.preventDefault();
-        //Additional finger added off the svg, make it visible.
-        if(event.touches.length > self.totalVisibleLines) setLineVisibility(event.touches.length);
         //create the average screen touch on viewport.
         let mean = {x: 0, y: 0};
-        for(let i = 0, iMax = event.touches.length; i < iMax && i < self.maxFingers; ++i) {
+        for(let i = 0; i < self.totalVisibleLines && i < self.maxFingers; ++i) {
           mean.x += event.touches[i].clientX;
           mean.y += event.touches[i].clientY;
           //Set coordinates for the line ends at touches on static svg.
@@ -383,7 +381,7 @@
         //set coordinates for the other line ends at mean touch
         const staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
         program.setAttributesNS(self.targetCircle, {cx: staticSVGPoint.x, cy: staticSVGPoint.y});
-        for(let i = 0, iMax = event.touches.length; i < iMax && i < self.maxFingers; ++i) {
+        for(let i = 0; i < self.totalVisibleLines && i < self.maxFingers; ++i) {
           program.setAttributesNS(self.targetLines[i], {x2: staticSVGPoint.x, y2: staticSVGPoint.y});
         }
         //use the mean like a single touch event.
