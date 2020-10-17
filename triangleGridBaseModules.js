@@ -277,7 +277,7 @@
 
     preparation(program) {
       const self = this;
-      program.staticSVG.addEventListener("pointerdown", addPoints);
+      program.staticSVG.addEventListener("mousedown", addPoints);
 
       function addPoints(event) {
         if(program.currentMode != "POINTS") return null;
@@ -354,14 +354,16 @@
       function touchStart(event) {
         console.log("start");
         if(program.currentMode != "POINTS") return null;
+        event.preventDefault();
         setLineVisibility(event.touches.length);
         touchActive = true;
         touchMid(event);
       }
 
       function touchMid(event) {
-        console.log("mid");
         if(program.currentMode != "POINTS" || !touchActive) return null;
+        //Prevent mouse event from going off.
+        event.preventDefault();
         //create the average screen touch on viewport.
         let mean = {x: 0, y: 0};
         for(let i = 0, iMax = event.touches.length; i < iMax && i < self.maxFingers; ++i) {
@@ -387,6 +389,7 @@
       function touchEnd(event) {
         console.log("end");
         if(program.currentMode != "POINTS" || !touchActive) return null;
+        event.preventDefault();
         touchActive = false;
         const gridPointKey = `${self.targetPosition.x},${self.targetPosition.y}`;
         if(self.pointPositions.hasOwnProperty(gridPointKey)) {

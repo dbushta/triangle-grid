@@ -57,8 +57,6 @@
 
       function gridZoomStart(event) {
         if(program.currentMode != "ZOOM") return null;
-        //Prevent accidental highlighting
-        event.preventDefault();
         zooming = true;
         start = getDistanceFromScaledSVGCenter(event);
         zoomCircle.setAttributeNS(null, 'r', getDistanceFromStaticSVGCenter(event));
@@ -66,7 +64,6 @@
 
       function gridZooming(event) {
         if(program.currentMode != "ZOOM" || !zooming) return null;
-        event.preventDefault();
         let now = getDistanceFromScaledSVGCenter(event);
         let hypotRatio = (now - start) / program.transform.maxZoom.hypotenuse;
         //Retain zoom bounds
@@ -86,7 +83,6 @@
 
       function gridZoomEnd(event) {
         if(program.currentMode != "ZOOM" || !zooming) return null;
-        event.preventDefault();
         zooming = false;
         program.modeMenus["ZOOM"]
       }
@@ -115,7 +111,6 @@
 
       function addPoints(event) {
         if(program.currentMode != "ADD") return null;
-        event.preventDefault();
         //convert mouse coordinates to svg coordinates to nearest grid coordinate.
         const sVGPoint = program.transformToSVGPoint(program.scaledSVG, event);
         const gridPoint = program.nearestGridPoint(sVGPoint);
@@ -125,10 +120,9 @@
           {r: '2', cx: roundedSVGPoint.x, cy: roundedSVGPoint.y, class: "point",
           style: "fill: white; stroke: black; stroke-width: 1"});
       }
-      
+
       function removePoints(event) {
         if(program.currentMode != "REMOVE") return null;
-        event.preventDefault();
         if(event.target.classList.contains("point")) event.target.remove();
       }
     }
