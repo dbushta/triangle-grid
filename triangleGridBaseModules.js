@@ -354,33 +354,34 @@
 
       function touchStart(event) {
         if(program.currentMode != "POINTS") return null;
-        console.log("start", event.targetTouches.length);
+        console.log("start", event.touches.length);
         event.preventDefault();
-        setLineVisibility(event.targetTouches.length);
+        setLineVisibility(event.touches.length);
         touchActive = true;
         touchMid(event);
       }
 
       function touchMid(event) {
         if(program.currentMode != "POINTS" || !touchActive) return null;
-        console.log("mid", event.targetTouches.length);
         //Prevent mouse event from going off.
         event.preventDefault();
+        const totalTouches = event.touches.length;
+        console.log("mid", totalTouches);
         //create the average screen touch on viewport.
         let mean = {x: 0, y: 0};
-        for(let i = 0, iMax = event.targetTouches.length; i < iMax && i < self.maxFingers; ++i) {
-          mean.x += event.targetTouches[i].clientX;
-          mean.y += event.targetTouches[i].clientY;
+        for(let i = 0; i < totalTouches && i < self.maxFingers; ++i) {
+          mean.x += event.touches[i].clientX;
+          mean.y += event.touches[i].clientY;
           //Set coordinates for the line ends at touches on static svg.
-          let staticSVGPoint = program.transformToSVGPoint(program.staticSVG, event.targetTouches[i]);
+          let staticSVGPoint = program.transformToSVGPoint(program.staticSVG, event.touches[i]);
           program.setAttributesNS(self.targetLines[i], {x1: staticSVGPoint.x, y1: staticSVGPoint.y});
         }
-        mean.x /= event.targetTouches.length;
-        mean.y /= event.targetTouches.length;
+        mean.x /= totalTouches;
+        mean.y /= totalTouches;
         //set coordinates for the other line ends at mean touch
         const staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
         program.setAttributesNS(self.targetCircle, {cx: staticSVGPoint.x, cy: staticSVGPoint.y});
-        for(let i = 0, iMax = event.targetTouches.length; i < iMax && i < self.maxFingers; ++i) {
+        for(let i = 0; i < totalTouches && i < self.maxFingers; ++i) {
           program.setAttributesNS(self.targetLines[i], {x2: staticSVGPoint.x, y2: staticSVGPoint.y});
         }
         //use the mean like a single touch event.
@@ -390,7 +391,7 @@
 
       function touchEnd(event) {
         if(program.currentMode != "POINTS" || !touchActive) return null;
-        console.log("end", event.targetTouches.length);
+        console.log("end", event.touches.length);
         event.preventDefault();
         touchActive = false;
         const gridPointKey = `${self.targetPosition.x},${self.targetPosition.y}`;
