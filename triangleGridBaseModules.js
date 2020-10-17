@@ -369,19 +369,21 @@
         event.preventDefault();
         //create the average screen touch on viewport.
         let mean = {x: 0, y: 0};
-        for(let i = 0; i < self.totalVisibleLines && i < self.maxFingers; ++i) {
+        let totalFingers =  self.totalVisibleLines < event.touches.length ?
+          self.totalVisibleLines : event.touches.length;
+        for(let i = 0; i < totalFingers; ++i) {
           mean.x += event.touches[i].clientX;
           mean.y += event.touches[i].clientY;
           //Set coordinates for the line ends at touches on static svg.
           let staticSVGPoint = program.transformToSVGPoint(program.staticSVG, event.touches[i]);
           program.setAttributesNS(self.targetLines[i], {x1: staticSVGPoint.x, y1: staticSVGPoint.y});
         }
-        mean.x /= event.touches.length;
-        mean.y /= event.touches.length;
+        mean.x /= totalFingers;
+        mean.y /= totalFingers;
         //set coordinates for the other line ends at mean touch
         const staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
         program.setAttributesNS(self.targetCircle, {cx: staticSVGPoint.x, cy: staticSVGPoint.y});
-        for(let i = 0; i < self.totalVisibleLines && i < self.maxFingers; ++i) {
+        for(let i = 0; i < totalFingers; ++i) {
           program.setAttributesNS(self.targetLines[i], {x2: staticSVGPoint.x, y2: staticSVGPoint.y});
         }
         //use the mean like a single touch event.
