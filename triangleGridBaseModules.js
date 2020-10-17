@@ -82,8 +82,9 @@
 
       const maxScroll = -program.transform.maxZoom.height * (program.modes.length - 6) * .15;
 
-      this.menuGroup.addEventListener("pointerdown", menuControl);
+      this.menuGroup.addEventListener("mousedown", menuControl);
 
+      //The menu can hold six modes at once, but past that needs the scroll.
       if(program.modes.length < 7) return null;
 
       program.addEventListeners(this.menuGroup,
@@ -98,12 +99,15 @@
         event.stopPropagation();
         let parentGroup = event.target.parentElement;
         if(!parentGroup.classList.contains("menuOption")) return null;
+        //Hide previous mode.
         if(program.modeMenus[program.currentMode]) {
           program.modeMenus[program.currentMode].style.display = "none";
         }
         program.currentMode = parentGroup.dataset.mode;
         menuButton.childNodes[1].childNodes[0].nodeValue = program.currentMode;
+        //Hide/unhide menu button depending on mode.
         menuButton.style.display = program.currentMode == "MENU" ? "none" : "block";
+        //Unhide current mode.
         if(program.modeMenus[program.currentMode]) {
           program.modeMenus[program.currentMode].style.display = "block";
         }
