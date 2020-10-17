@@ -345,12 +345,10 @@
       //if total > 5 only 5 will be visible, if total = 0 none will be visible.
       function setLineVisibility(total) {
         self.targetCircle.style.display = total ? "block" : "none";
-        self.totalVisibleLines = 0;
-        for(let i = 0; i < total && i < self.maxFingers; ++i) {
+        for(let i = 0; i < self.totalVisibleLines && i < self.maxFingers; ++i) {
           self.targetLines[i].style.display = "block";
-          self.totalVisibleLines++;
         }
-        for(let i = total; i < self.maxFingers; ++i) {
+        for(let i = self.totalVisibleLines; i < self.maxFingers; ++i) {
           self.targetLines[i].style.display = "none";
         }
       }
@@ -358,7 +356,8 @@
       function touchStart(event) {
         if(program.currentMode != "POINTS") return null;
         event.preventDefault();
-        setLineVisibility(event.touches.length);
+        self.totalVisibleLines++;
+        setLineVisibility(self.totalVisibleLines);
         touchActive = true;
         touchMid(event);
       }
@@ -408,6 +407,7 @@
             style: "fill: white; stroke: black; stroke-width: 1"});;
         }
         //Hide all the lines, to let user know to restart.
+        self.totalVisibleLines--;
         setLineVisibility(0);
       }
     }
