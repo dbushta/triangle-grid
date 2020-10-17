@@ -81,15 +81,13 @@
 
       const maxScroll = -program.transform.maxZoom.height * (program.modes.length - 6) * .15;
 
-      this.menuGroup.addEventListener("mousedown", menuControl);
+      this.menuGroup.addEventListener("pointerdown", menuControl);
 
       if(program.modes.length < 7) return null;
 
       program.addEventListeners(this.menuGroup,
-        [{type: "mousedown", handler: menuSlideStart}, {type: "mousemove", handler: menuSliding},
-        {type: "mouseup", handler: menuSlideEnd}, {type: "mouseleave", handler: menuSlideEnd},
-        {type: "touchstart", handler: menuSlideStart}, {type: "touchmove", handler: menuSliding},
-        {type: "touchend", handler: menuSlideEnd}, {type: "touchcancel", handler: menuSlideEnd}]);
+        [{type: "pointerdown", handler: menuSlideStart}, {type: "pointermove", handler: menuSliding},
+        {type: "pointerup", handler: menuSlideEnd}, {type: "pointerleave", handler: menuSlideEnd}]);
 
       let sliding = false;
       let start = null;
@@ -111,28 +109,27 @@
       }
       function menuSlideStart(event) {
         //Prevent mousedown events on other SVGs
-        event.stopPropagation();
         if(program.currentMode != "MENU") return null;
+        event.stopPropagation();
         sliding = true;
-        event = event.type == "mousedown" ? event : event.touches[0];
         start = program.transformToSVGPoint(program.staticSVG, event);
       }
       function menuSliding(event) {
-        if(sliding) {
-          event = event.type == "mousemove" ? event : event.touches[0];
-          let now = program.transformToSVGPoint(program.staticSVG, event);
-          currentSlide += (now.y - start.y);
-          //Make sure not to lose the mode buttons
-          if(currentSlide > 0) currentSlide = 0;
-          else if(currentSlide < maxScroll) currentSlide = maxScroll;
-
-          buttonGroup.setAttributeNS(null, "transform",
-            `translate(${program.transform.maxZoom.width * .25}, ${currentSlide})`);
-          start = now;
-          program.updateSVG();
-        }
+        if(program.currentMode != "MENU" || !sliding) return null;
+        event.stopPropagation();
+        let now = program.transformToSVGPoint(program.staticSVG, event);
+        currentSlide += (now.y - start.y);
+        //Make sure not to lose the mode buttons
+        if(currentSlide > 0) currentSlide = 0;
+        else if(currentSlide < maxScroll) currentSlide = maxScroll;
+        buttonGroup.setAttributeNS(null, "transform",
+          `translate(${program.transform.maxZoom.width * .25}, ${currentSlide})`);
+        start = now;
+        program.updateSVG();
       }
       function menuSlideEnd(event) {
+        if(program.currentMode != "MENU" || !sliding) return null;
+        event.stopPropagation();
         sliding = false;
       }
     }
@@ -153,10 +150,8 @@
 
     preparation(program) {
       program.addEventListeners(program.staticSVG,
-        [{type: "mousedown", handler: gridMoveStart}, {type: "mousemove", handler: gridMoving},
-        {type: "mouseup", handler: gridMoveEnd}, {type: "mouseleave", handler: gridMoveEnd},
-        {type: "touchstart", handler: gridMoveStart},{type: "touchmove", handler: gridMoving},
-        {type: "touchend", handler: gridMoveEnd}, {type: "touchcancel", handler: gridMoveEnd}]);
+        [{type: "pointerdown", handler: gridMoveStart}, {type: "pointermove", handler: gridMoving},
+        {type: "pointerup", handler: gridMoveEnd}, {type: "pointerleave", handler: gridMoveEnd}]);
 
       //Use closure to hold variables between eventListeners
       let moving = false;
@@ -167,18 +162,18 @@
         //Prevent accidental highlighting
         event.preventDefault();
         moving = true;
-        event = event.type == "mousedown" ? event : event.touches[0];
         start = program.transformToSVGPoint(program.scaledSVG, event);
       }
       function gridMoving(event) {
-        if(moving) {
-          event = event.type == "mousemove" ? event : event.touches[0];
-          let now = program.transformToSVGPoint(program.scaledSVG, event);
-          program.transform.moveBy({x: now.x - start.x, y: now.y - start.y});
-          program.updateSVG();
-        }
+        if(program.currentMode != "MOVE" || !moving) return null;
+        event.preventDefault();
+        let now = program.transformToSVGPoint(program.scaledSVG, event);
+        program.transform.moveBy({x: now.x - start.x, y: now.y - start.y});
+        program.updateSVG();
       }
       function gridMoveEnd(event) {
+        if(program.currentMode != "MOVE" || !moving) return null;
+        event.preventDefault();
         moving = false;
       }
     }
@@ -216,10 +211,8 @@
     preparation(program) {
       const self = this;
       program.addEventListeners(program.staticSVG,
-        [{type: "mousedown", handler: gridZoomStart}, {type: "mousemove", handler: gridZooming},
-        {type: "mouseup", handler: gridZoomEnd}, {type: "mouseleave", handler: gridZoomEnd},
-        {type: "touchstart", handler: gridZoomStart}, {type: "touchmove", handler: gridZooming},
-        {type: "touchend", handler: gridZoomEnd}, {type: "touchcancel", handler: gridZoomEnd}]);
+        [{type: "pointerdown", handler: gridZoomStart}, {type: "pointermove", handler: gridZooming},
+        {type: "pointerup", handler: gridZoomEnd}, {type: "pointerleave", handler: gridZoomEnd}]);
 
       let zooming = false;
       let start = 0;
@@ -232,32 +225,32 @@
         //Prevent accidental highlighting
         event.preventDefault();
         zooming = true;
-        event = event.type == "mousedown" ? event : event.touches[0];
         start = program.transformToSVGPoint(program.staticSVG, event);
       }
       function gridZooming(event) {
-        if(zooming) {
-          event = event.type == "mousemove" ? event : event.touches[0];
-          const now = program.transformToSVGPoint(program.staticSVG, event);
-          let hypotRatio = (now.y - start.y) / program.transform.maxZoom.height;
-          start = now;
-          let sliderColor = "red";
-          //Retain zoom bounds
-          if(program.transform.currentZoom + hypotRatio > 1) {
-            hypotRatio = 1 - program.transform.currentZoom;
-          } else if(program.transform.currentZoom + hypotRatio < 0.05) {
-            hypotRatio = 0.05 - program.transform.currentZoom ;
-          } else {
-            sliderColor = "white";
-          }
-          program.transform.zoomBy(hypotRatio);
-          self.slider.setAttributeNS(null, "y",
-            `${program.transform.currentZoom * 95 - 5}%`);
-          self.slider.style.fill = sliderColor;
-          program.updateSVG();
+        if(program.currentMode != "ZOOM" || !zooming) return null;
+        event.preventDefault();
+        const now = program.transformToSVGPoint(program.staticSVG, event);
+        let hypotRatio = (now.y - start.y) / program.transform.maxZoom.height;
+        start = now;
+        let sliderColor = "red";
+        //Retain zoom bounds
+        if(program.transform.currentZoom + hypotRatio > 1) {
+          hypotRatio = 1 - program.transform.currentZoom;
+        } else if(program.transform.currentZoom + hypotRatio < 0.05) {
+          hypotRatio = 0.05 - program.transform.currentZoom ;
+        } else {
+          sliderColor = "white";
         }
+        program.transform.zoomBy(hypotRatio);
+        self.slider.setAttributeNS(null, "y",
+          `${program.transform.currentZoom * 95 - 5}%`);
+        self.slider.style.fill = sliderColor;
+        program.updateSVG();
       }
       function gridZoomEnd(event) {
+        if(program.currentMode != "ZOOM" || !zooming) return null;
+        event.preventDefault();
         zooming = false;
         program.modeMenus["ZOOM"]
       }
@@ -287,10 +280,11 @@
 
     preparation(program) {
       const self = this;
-      program.staticSVG.addEventListener("mousedown", addPoints);
+      program.staticSVG.addEventListener("pointerdown", addPoints);
 
       function addPoints(event) {
         if(program.currentMode != "POINTS") return null;
+        event.preventDefault();
         //convert mouse coordinates to svg coordinates to nearest grid coordinate.
         const sVGPoint = program.transformToSVGPoint(program.scaledSVG, event);
         const gridPoint = program.nearestGridPoint(sVGPoint);
@@ -369,7 +363,7 @@
         touchMid(event);
       }
       function touchMid(event) {
-        if(!touchActive) return null;
+        if(program.currentMode != "POINTS" || !touchActive) return null;
         event.preventDefault();
         //create the average screen touch on viewport.
         let mean = {x: 0, y: 0};
@@ -393,7 +387,7 @@
         self.targetPosition = program.nearestGridPoint(scaledSVGPoint);
       }
       function touchEnd(event) {
-        if(!touchActive) return null;
+        if(program.currentMode != "POINTS" || !touchActive) return null;
         event.preventDefault();
         touchActive = false;
         const gridPointKey = `${self.targetPosition.x},${self.targetPosition.y}`;

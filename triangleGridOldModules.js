@@ -31,10 +31,8 @@
 
     preparation(program) {
       program.addEventListeners(program.staticSVG,
-        [{type: "mousedown", handler: gridZoomStart}, {type: "mousemove", handler: gridZooming},
-        {type: "mouseup", handler: gridZoomEnd}, {type: "mouseleave", handler: gridZoomEnd},
-        {type: "touchstart", handler: gridZoomStart}, {type: "touchmove", handler: gridZooming},
-        {type: "touchend", handler: gridZoomEnd}, {type: "touchcancel", handler: gridZoomEnd}]);
+        [{type: "pointerdown", handler: gridZoomStart}, {type: "pointermove", handler: gridZooming},
+        {type: "pointerup", handler: gridZoomEnd}, {type: "pointerleave", handler: gridZoomEnd}]);
 
       let zooming = false;
       let start = 0;
@@ -61,31 +59,31 @@
         //Prevent accidental highlighting
         event.preventDefault();
         zooming = true;
-        event = event.type == "mousedown" ? event : event.touches[0];
         start = getDistanceFromScaledSVGCenter(event);
         zoomCircle.setAttributeNS(null, 'r', getDistanceFromStaticSVGCenter(event));
       }
       function gridZooming(event) {
-        if(zooming) {
-          event = event.type == "mousemove" ? event : event.touches[0];
-          let now = getDistanceFromScaledSVGCenter(event);
-          let hypotRatio = (now - start) / program.transform.maxZoom.hypotenuse;
-          //Retain zoom bounds
-          let circleColor = "red";
-          if(program.transform.currentZoom - hypotRatio > 1) {
-            hypotRatio = program.transform.currentZoom - 1;
-          } else if(program.transform.currentZoom - hypotRatio < 0.05) {
-            hypotRatio = program.transform.currentZoom - 0.05;
-          } else {
-            zoomCircle.setAttributeNS(null, 'r', getDistanceFromStaticSVGCenter(event));
-            circleColor = "black"
-          }
-          zoomCircle.style.stroke = circleColor;
-          program.transform.zoomBy(-hypotRatio);
-          program.updateSVG();
+        if(program.currentMode != "ZOOM" || !zooming) return null;
+        event.preventDefault();
+        let now = getDistanceFromScaledSVGCenter(event);
+        let hypotRatio = (now - start) / program.transform.maxZoom.hypotenuse;
+        //Retain zoom bounds
+        let circleColor = "red";
+        if(program.transform.currentZoom - hypotRatio > 1) {
+          hypotRatio = program.transform.currentZoom - 1;
+        } else if(program.transform.currentZoom - hypotRatio < 0.05) {
+          hypotRatio = program.transform.currentZoom - 0.05;
+        } else {
+          zoomCircle.setAttributeNS(null, 'r', getDistanceFromStaticSVGCenter(event));
+          circleColor = "black"
         }
+        zoomCircle.style.stroke = circleColor;
+        program.transform.zoomBy(-hypotRatio);
+        program.updateSVG();
       }
       function gridZoomEnd(event) {
+        if(program.currentMode != "ZOOM" || !zooming) return null;
+        event.preventDefault();
         zooming = false;
         program.modeMenus["ZOOM"]
       }
@@ -109,12 +107,11 @@
     preparation(program) {
       const self = this;
       program.addEventListeners(program.staticSVG, [
-        {type: "mousedown", handler: addPoints}, {type: "mousedown", handler: removePoints},
-        {type: "touchstart", handler: addPoints}, {type: "touchstart", handler: removePoints}]);
+        {type: "pointerdown", handler: addPoints}, {type: "pointerdown", handler: removePoints}]);
 
       function addPoints(event) {
         if(program.currentMode != "ADD") return null;
-        event = event.type == "mousedown" ? event : event.touches[0];
+        event.preventDefault();
         //convert mouse coordinates to svg coordinates to nearest grid coordinate.
         const sVGPoint = program.transformToSVGPoint(program.scaledSVG, event);
         const gridPoint = program.nearestGridPoint(sVGPoint);
@@ -126,6 +123,7 @@
       }
       function removePoints(event) {
         if(program.currentMode != "REMOVE") return null;
+        event.preventDefault();
         if(event.target.classList.contains("point")) event.target.remove();
       }
     }
