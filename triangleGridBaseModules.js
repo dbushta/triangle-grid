@@ -323,7 +323,6 @@
         program.modeMenus["POINTS"] = program.createAndSetElement("g", program.staticSVG, {id: "pointsMenu"});
       }
       this.targetLines = [];
-      this.totalVisibleLines = 0;
       //Apparently there are ones that support up to 10 fingers now.
       this.maxFingers = 10;
       for(let i = 0; i < this.maxFingers; ++i) {
@@ -356,8 +355,7 @@
       function touchStart(event) {
         if(program.currentMode != "POINTS") return null;
         event.preventDefault();
-        self.totalVisibleLines++;
-        setLineVisibility(self.totalVisibleLines);
+        setLineVisibility(event.targetTouches.length);
         touchActive = true;
         touchMid(event);
       }
@@ -368,19 +366,19 @@
         event.preventDefault();
         //create the average screen touch on viewport.
         let mean = {x: 0, y: 0};
-        for(let i = 0; i < self.totalVisibleLines; ++i) {
-          mean.x += event.touches[i].clientX;
-          mean.y += event.touches[i].clientY;
+        for(let i = 0, iMax = event.targetTouches.length; i < iMax && i < self.maxFingers; ++i) {
+          mean.x += event.targetTouches[i].clientX;
+          mean.y += event.targetTouches[i].clientY;
           //Set coordinates for the line ends at touches on static svg.
-          let staticSVGPoint = program.transformToSVGPoint(program.staticSVG, event.touches[i]);
+          let staticSVGPoint = program.transformToSVGPoint(program.staticSVG, event.targetTouches[i]);
           program.setAttributesNS(self.targetLines[i], {x1: staticSVGPoint.x, y1: staticSVGPoint.y});
         }
-        mean.x /= self.totalVisibleLines;
-        mean.y /= self.totalVisibleLines;
+        mean.x /= event.targetTouches.length;
+        mean.y /= event.targetTouches.length;
         //set coordinates for the other line ends at mean touch
         const staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
         program.setAttributesNS(self.targetCircle, {cx: staticSVGPoint.x, cy: staticSVGPoint.y});
-        for(let i = 0; i < self.totalVisibleLines; ++i) {
+        for(let i = 0, iMax = event.targetTouches.length; i < iMax && i < self.maxFingers; ++i) {
           program.setAttributesNS(self.targetLines[i], {x2: staticSVGPoint.x, y2: staticSVGPoint.y});
         }
         //use the mean like a single touch event.
@@ -405,7 +403,6 @@
             style: "fill: white; stroke: black; stroke-width: 1"});;
         }
         //Hide all the lines, to let user know to restart.
-        self.totalVisibleLines--;
         setLineVisibility(0);
       }
     }
@@ -425,7 +422,7 @@
 
     preparation() {
       let center = this.program.createAndSetElement("circle", this.program.scaledSVG,
-        {class: "centerCircle", r: 1.5, style: "fill: red; stroke: black; stroke-width: 1;"});
+        {class: "centerCircle", r: 1, style: "fill: red; stroke: black; stroke-width: 1;"});
     }
   }
 
