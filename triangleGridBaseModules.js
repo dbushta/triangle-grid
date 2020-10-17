@@ -323,7 +323,9 @@
         program.modeMenus["POINTS"] = program.createAndSetElement("g", program.staticSVG, {id: "pointsMenu"});
       }
       this.targetLines = [];
-      this.maxFingers = 5;
+      this.totalVisibleLines = 0;
+      //Apparently there are ones that support up to 10 fingers now.
+      this.maxFingers = 10;
       for(let i = 0; i < this.maxFingers; ++i) {
         this.targetLines.push(program.createAndSetElement("line", program.modeMenus["POINTS"],
           {style: "stroke: red; stroke-width: 1;"}));
@@ -343,8 +345,10 @@
       //if total > 5 only 5 will be visible, if total = 0 none will be visible.
       function setLineVisibility(total) {
         self.targetCircle.style.display = total ? "block" : "none";
+        self.totalVisibleLines = 0;
         for(let i = 0; i < total && i < self.maxFingers; ++i) {
           self.targetLines[i].style.display = "block";
+          self.totalVisibleLines++:
         }
         for(let i = total; i < self.maxFingers; ++i) {
           self.targetLines[i].style.display = "none";
@@ -352,7 +356,6 @@
       }
 
       function touchStart(event) {
-        console.log("start");
         if(program.currentMode != "POINTS") return null;
         event.preventDefault();
         setLineVisibility(event.touches.length);
@@ -364,6 +367,8 @@
         if(program.currentMode != "POINTS" || !touchActive) return null;
         //Prevent mouse event from going off.
         event.preventDefault();
+        //Additional finger added off the svg, make it visible.
+        if(event.touches.length > self.totalVisibleLines) setLineVisibility(event.touches.length);
         //create the average screen touch on viewport.
         let mean = {x: 0, y: 0};
         for(let i = 0, iMax = event.touches.length; i < iMax && i < self.maxFingers; ++i) {
@@ -387,7 +392,6 @@
       }
 
       function touchEnd(event) {
-        console.log("end");
         if(program.currentMode != "POINTS" || !touchActive) return null;
         event.preventDefault();
         touchActive = false;
@@ -423,7 +427,7 @@
 
     preparation() {
       let center = this.program.createAndSetElement("circle", this.program.scaledSVG,
-        {class: "centerCircle", r: 2, style: "fill: red; stroke: black; stroke-width: 1;"});
+        {class: "centerCircle", r: 1, style: "fill: red; stroke: black; stroke-width: 1;"});
     }
   }
 
