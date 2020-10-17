@@ -354,6 +354,7 @@
 
       function touchStart(event) {
         if(program.currentMode != "POINTS") return null;
+        console.log("start", event.targetTouches.length);
         event.preventDefault();
         setLineVisibility(event.targetTouches.length);
         touchActive = true;
@@ -362,6 +363,7 @@
 
       function touchMid(event) {
         if(program.currentMode != "POINTS" || !touchActive) return null;
+        console.log("mid", event.targetTouches.length);
         //Prevent mouse event from going off.
         event.preventDefault();
         //create the average screen touch on viewport.
@@ -388,6 +390,7 @@
 
       function touchEnd(event) {
         if(program.currentMode != "POINTS" || !touchActive) return null;
+        console.log("end", event.targetTouches.length);
         event.preventDefault();
         touchActive = false;
         const gridPointKey = `${self.targetPosition.x},${self.targetPosition.y}`;
