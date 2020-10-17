@@ -323,6 +323,7 @@
         program.modeMenus["POINTS"] = program.createAndSetElement("g", program.staticSVG, {id: "pointsMenu"});
       }
       this.targetLines = [];
+      this.totalVisibleLines = 0;
       //Apparently there are ones that support up to 10 fingers now.
       this.maxFingers = 10;
       for(let i = 0; i < this.maxFingers; ++i) {
@@ -344,8 +345,10 @@
       //if total > 5 only 5 will be visible, if total = 0 none will be visible.
       function setLineVisibility(total) {
         self.targetCircle.style.display = total ? "block" : "none";
+        self.totalVisibleLines = 0;
         for(let i = 0; i < total && i < self.maxFingers; ++i) {
           self.targetLines[i].style.display = "block";
+          self.totalVisibleLines++;
         }
         for(let i = total; i < self.maxFingers; ++i) {
           self.targetLines[i].style.display = "none";
@@ -354,7 +357,6 @@
 
       function touchStart(event) {
         if(program.currentMode != "POINTS") return null;
-        console.log("start", event.touches.length);
         event.preventDefault();
         setLineVisibility(event.touches.length);
         touchActive = true;
@@ -366,7 +368,7 @@
         //Prevent mouse event from going off.
         event.preventDefault();
         const totalTouches = event.touches.length;
-        console.log("mid", totalTouches);
+        if(totalTouches > self.totalVisibleLines) setLineVisibility(totalTouches);
         //create the average screen touch on viewport.
         let mean = {x: 0, y: 0};
         for(let i = 0; i < totalTouches && i < self.maxFingers; ++i) {
@@ -391,7 +393,6 @@
 
       function touchEnd(event) {
         if(program.currentMode != "POINTS" || !touchActive) return null;
-        console.log("end", event.touches.length);
         event.preventDefault();
         touchActive = false;
         const gridPointKey = `${self.targetPosition.x},${self.targetPosition.y}`;
