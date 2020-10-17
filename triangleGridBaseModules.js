@@ -348,7 +348,7 @@
         self.totalVisibleLines = 0;
         for(let i = 0; i < total && i < self.maxFingers; ++i) {
           self.targetLines[i].style.display = "block";
-          self.totalVisibleLines++:
+          self.totalVisibleLines++;
         }
         for(let i = total; i < self.maxFingers; ++i) {
           self.targetLines[i].style.display = "none";
@@ -427,7 +427,7 @@
 
     preparation() {
       let center = this.program.createAndSetElement("circle", this.program.scaledSVG,
-        {class: "centerCircle", r: 1, style: "fill: red; stroke: black; stroke-width: 1;"});
+        {class: "centerCircle", r: 1.5, style: "fill: red; stroke: black; stroke-width: 1;"});
     }
   }
 
