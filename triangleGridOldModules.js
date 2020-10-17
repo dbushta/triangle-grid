@@ -54,6 +54,7 @@
         return Math.hypot(newPt.x - program.transform.maxZoom.width / 2,
           newPt.y - program.transform.maxZoom.height / 2);
       }
+
       function gridZoomStart(event) {
         if(program.currentMode != "ZOOM") return null;
         //Prevent accidental highlighting
@@ -62,6 +63,7 @@
         start = getDistanceFromScaledSVGCenter(event);
         zoomCircle.setAttributeNS(null, 'r', getDistanceFromStaticSVGCenter(event));
       }
+
       function gridZooming(event) {
         if(program.currentMode != "ZOOM" || !zooming) return null;
         event.preventDefault();
@@ -81,6 +83,7 @@
         program.transform.zoomBy(-hypotRatio);
         program.updateSVG();
       }
+
       function gridZoomEnd(event) {
         if(program.currentMode != "ZOOM" || !zooming) return null;
         event.preventDefault();
@@ -89,6 +92,7 @@
       }
     }
   }
+
 
   /*Method moduleTwoModesPoints
    *Parameters: null
@@ -121,6 +125,7 @@
           {r: '2', cx: roundedSVGPoint.x, cy: roundedSVGPoint.y, class: "point",
           style: "fill: white; stroke: black; stroke-width: 1"});
       }
+      
       function removePoints(event) {
         if(program.currentMode != "REMOVE") return null;
         event.preventDefault();

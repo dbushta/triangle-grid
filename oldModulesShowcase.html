@@ -5,6 +5,10 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Triangle Grid Old Modules Showcase</title>
     <style>
+      /*Prevent the mobile device from scrolling while on svg*/
+      .sVG {
+        touch-action: none;
+      }
       .backgroundSVG {
         height: 100%;
         width: 100%;
@@ -62,7 +66,7 @@
           <h2>Zoom Module</h2>
           <h3>starts zoomed halfway, click and drag towards/away from center.</h3>
         </section>
-        <svg class="showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
+        <svg class="sVG showCaseSVG outLineBlock whiteBackground" height="300" width="500"></svg>
       </div>
 
       <div id="sVG2">
@@ -78,7 +82,7 @@
           </div>
         </section>
         </br>
-        <svg class="addRemoveSVG outLineBlock whiteBackground" height="300" width="500"></svg>
+        <svg class="sVG addRemoveSVG outLineBlock whiteBackground" height="300" width="500"></svg>
       </div>
     </div>
 

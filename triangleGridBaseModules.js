@@ -12,6 +12,7 @@
 }(this, function(exports) {
   "use strict";
 
+
   /*class moduleMenu
    *Parameters: null
    *Description: install menu mode
@@ -107,16 +108,16 @@
           program.modeMenus[program.currentMode].style.display = "block";
         }
       }
+
       function menuSlideStart(event) {
         //Prevent mousedown events on other SVGs
         if(program.currentMode != "MENU") return null;
-        event.stopPropagation();
         sliding = true;
         start = program.transformToSVGPoint(program.staticSVG, event);
       }
+
       function menuSliding(event) {
         if(program.currentMode != "MENU" || !sliding) return null;
-        event.stopPropagation();
         let now = program.transformToSVGPoint(program.staticSVG, event);
         currentSlide += (now.y - start.y);
         //Make sure not to lose the mode buttons
@@ -127,9 +128,9 @@
         start = now;
         program.updateSVG();
       }
+
       function menuSlideEnd(event) {
         if(program.currentMode != "MENU" || !sliding) return null;
-        event.stopPropagation();
         sliding = false;
       }
     }
@@ -159,21 +160,19 @@
 
       function gridMoveStart(event) {
         if(program.currentMode != "MOVE") return null;
-        //Prevent accidental highlighting
-        event.preventDefault();
         moving = true;
         start = program.transformToSVGPoint(program.scaledSVG, event);
       }
+
       function gridMoving(event) {
         if(program.currentMode != "MOVE" || !moving) return null;
-        event.preventDefault();
         let now = program.transformToSVGPoint(program.scaledSVG, event);
         program.transform.moveBy({x: now.x - start.x, y: now.y - start.y});
         program.updateSVG();
       }
+
       function gridMoveEnd(event) {
         if(program.currentMode != "MOVE" || !moving) return null;
-        event.preventDefault();
         moving = false;
       }
     }
@@ -222,14 +221,12 @@
 
       function gridZoomStart(event) {
         if(program.currentMode != "ZOOM") return null;
-        //Prevent accidental highlighting
-        event.preventDefault();
         zooming = true;
         start = program.transformToSVGPoint(program.staticSVG, event);
       }
+
       function gridZooming(event) {
         if(program.currentMode != "ZOOM" || !zooming) return null;
-        event.preventDefault();
         const now = program.transformToSVGPoint(program.staticSVG, event);
         let hypotRatio = (now.y - start.y) / program.transform.maxZoom.height;
         start = now;
@@ -248,9 +245,9 @@
         self.slider.style.fill = sliderColor;
         program.updateSVG();
       }
+
       function gridZoomEnd(event) {
         if(program.currentMode != "ZOOM" || !zooming) return null;
-        event.preventDefault();
         zooming = false;
         program.modeMenus["ZOOM"]
       }
@@ -284,7 +281,6 @@
 
       function addPoints(event) {
         if(program.currentMode != "POINTS") return null;
-        event.preventDefault();
         //convert mouse coordinates to svg coordinates to nearest grid coordinate.
         const sVGPoint = program.transformToSVGPoint(program.scaledSVG, event);
         const gridPoint = program.nearestGridPoint(sVGPoint);
@@ -303,6 +299,7 @@
       }
     }
   }
+
 
   /*Method moduleTouchPoints
    *Parameters: null
@@ -342,7 +339,6 @@
       program.staticSVG.addEventListener("touchmove", touchMid);
       program.staticSVG.addEventListener("touchend", touchEnd);
       program.staticSVG.addEventListener("touchcancel", touchEnd);
-
       let touchActive = false;
       //if total > 5 only 5 will be visible, if total = 0 none will be visible.
       function setLineVisibility(total) {
@@ -354,17 +350,18 @@
           self.targetLines[i].style.display = "none";
         }
       }
+
       function touchStart(event) {
+        console.log("start");
         if(program.currentMode != "POINTS") return null;
-        event.preventDefault();
-        //Don't allow more than the average five fingers on screen.
         setLineVisibility(event.touches.length);
         touchActive = true;
         touchMid(event);
       }
+
       function touchMid(event) {
+        console.log("mid");
         if(program.currentMode != "POINTS" || !touchActive) return null;
-        event.preventDefault();
         //create the average screen touch on viewport.
         let mean = {x: 0, y: 0};
         for(let i = 0, iMax = event.touches.length; i < iMax && i < self.maxFingers; ++i) {
@@ -386,9 +383,10 @@
         const scaledSVGPoint = program.transformToSVGPoint(program.scaledSVG, mean);
         self.targetPosition = program.nearestGridPoint(scaledSVGPoint);
       }
+
       function touchEnd(event) {
+        console.log("end");
         if(program.currentMode != "POINTS" || !touchActive) return null;
-        event.preventDefault();
         touchActive = false;
         const gridPointKey = `${self.targetPosition.x},${self.targetPosition.y}`;
         if(self.pointPositions.hasOwnProperty(gridPointKey)) {
@@ -408,6 +406,7 @@
     }
   }
 
+
   /*object moduleCenterMarker
    *Parameters: null
    *Description: Add a circle to 0, 0 on the grid
@@ -418,6 +417,7 @@
     constructor(program) {
       this.program = program;
     }
+
     preparation() {
       let center = this.program.createAndSetElement("circle", this.program.scaledSVG,
         {class: "centerCircle", r: 2, style: "fill: red; stroke: black; stroke-width: 1;"});
