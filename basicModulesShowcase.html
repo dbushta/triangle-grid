@@ -10,8 +10,6 @@
         touch-action: none;
       }
       .backgroundSVG {
-        height: 100%;
-        width: 100%;
         position: fixed;
         top: 0;
         bottom: 0;
@@ -52,7 +50,7 @@
   </head>
   <body>
     <!--Background should have preserveAspectRatio-->
-    <svg class="backgroundSVG" preserveAspectRatio="xMinYMin slice"></svg>
+    <svg class="backgroundSVG" height="100%" width="100%" preserveAspectRatio="xMinYMin slice"></svg>
     <!--Apply this div's classes to everything inside it-->
     <div class="showCaseSVGs center noHighlight">
       <header class="outLineBlock blueBackground">

@@ -27,48 +27,17 @@
 
       this.nameSpace = "http://www.w3.org/2000/svg";
       this.staticSVG = svg;
-      this.scaledSVG = this.createAndSetElement("svg", svg, {id:"scaledSVG"});
-      this.grid = this.createAndSetElement("g", this.scaledSVG, {class: "gridGroup"});
+      const sVGDimensions = this.staticSVG.getBoundingClientRect();
+      this.scaledSVG = this.createAndSetElement("svg", svg,
+        {id:"scaledSVG", width:sVGDimensions.width, height:sVGDimensions.height});
+      this.transform = new sVGViewBoxController(this.scaledSVG);
+      this.grid = this.createAndSetElement("g", this.scaledSVG, {class:"gridGroup"});
       /*Length of one triangle of the grid*/
       this.xLength = triangleSideLength;
       /*Height of one triangle*/
       this.yLength = Math.sqrt(3) * this.xLength / 2;
 
       /*Main controller for basic transforms on svg*/
-      this.transform = {
-        program: this.program,
-        currentZoom: 0,
-        maxZoom: null,
-        _viewBox: null,
-        _moveDisplacement: {x: 0, y: 0},
-        _zoomDisplacement: {x: 0, y: 0},
-        //convert to set move
-        moveBy: function(vector) {
-          this.move = {x: this._moveDisplacement.x - vector.x,
-            y: this._moveDisplacement.y - vector.y};
-        },
-        //store displacement, and update viewBox
-        set move(coordinates) {
-          this._moveDisplacement.x = coordinates.x;
-          this._moveDisplacement.y = coordinates.y;
-          this._viewBox.x = this._moveDisplacement.x + this._zoomDisplacement.x;
-          this._viewBox.y = this._moveDisplacement.y + this._zoomDisplacement.y;
-        },
-        //convert to set zoom
-        zoomBy: function(percent) {
-          this.zoom = this.currentZoom + percent;
-        },
-        //store zoom Displacement, and update viewBox.
-        set zoom(percent) {
-          this.currentZoom = percent;
-          this._zoomDisplacement.x = (1 - this.currentZoom) * this.maxZoom.width / 2;
-          this._zoomDisplacement.y = (1 - this.currentZoom) * this.maxZoom.height / 2;
-          this._viewBox.x = this._moveDisplacement.x + this._zoomDisplacement.x;
-          this._viewBox.y = this._moveDisplacement.y + this._zoomDisplacement.y;
-          this._viewBox.width = this.currentZoom * this.maxZoom.width;
-          this._viewBox.height = this.currentZoom * this.maxZoom.height;
-        }
-      };
       /*modes for module controls*/
       this.modes = [];
       this.modeMenus = {};
@@ -77,6 +46,7 @@
       this.initialize();
       this.updateSVG();
     }
+
 
     /*Function initialize
      *Parameters: null
@@ -87,7 +57,7 @@
       /*Set viewBox to svg boundingClientRect so dimensions match,
         and preserveAspectRatio doesn't cause as many problems.
        */
-      const dimensions = this.staticSVG.getBoundingClientRect();
+      /*const dimensions = this.staticSVG.getBoundingClientRect();
       //Remember max size before infinite grid illusion is broken
       this.transform.maxZoom = {
         width: dimensions.width,
@@ -97,8 +67,8 @@
       const viewBoxString = `0 0 ${dimensions.width} ${dimensions.height}`;
       this.staticSVG.setAttributeNS(null, "viewBox", viewBoxString);
       this.scaledSVG.setAttributeNS(null, "viewBox", viewBoxString);
-      this.transform._viewBox = this.scaledSVG.viewBox.baseVal;
-      this.transform.moveBy({x: dimensions.width / 2, y: dimensions.height / 2});
+      this.transform._viewBox = this.scaledSVG.viewBox.baseVal;*/
+      this.transform.moveBy({x: this.transform.maxZoom.width / 2, y: this.transform.maxZoom.height / 2});
 
       this.drawLines();
       if(!this.modules) return null;
@@ -106,6 +76,7 @@
       for(let i = 0; i < this.modules.length; i++) this.modules[i] = new this.modules[i](this);
       for(const module of this.modules) module.preparation(this);
     }
+
 
     /*Method drawLines
      *Parameters: null
@@ -122,6 +93,7 @@
         (this.transform.maxZoom.height > this.transform.maxZoom.width ?
         this.transform.maxZoom.height : this.transform.maxZoom.width) /
         (2 * this.yLength)) * 2 * this.xLength;
+        console.log(this.transform.maxZoom.height, this.transform.maxZoom.width, length);
       var pointPairs = [];
       /*Create diagonal point pairs starting at half a length(which is even) to the left.
         Length is the height of a right triangle, which is sqrt(3) times the base.
@@ -143,10 +115,43 @@
       }
       //Take created point pairs to make lines
       for(const pair of pointPairs) {
-        this.createAndSetElement("line", this.grid, {x1: pair.p1.x, x2: pair.p2.x,
-          y1: pair.p1.y, y2: pair.p2.y, style: "stroke: black; stroke-width: 0.5;"});
+        let newLine = this.createAndSetElement("line", this.grid, {
+          x1: pair.p1.x, x2: pair.p2.x, y1: pair.p1.y, y2: pair.p2.y});
+        this.setStyle(newLine, {stroke:"black", "stroke-width":0.5});
       }
     }
+
+
+    /*Method addMode
+     *Paramaters: modeString(string) - name of the mode.
+     *Description: Add if it doesn't have the mode.
+     *Return: null
+     */
+    addMode(modeString) {
+      if(!this.modes.includes(modeString)) {
+        this.modes.push(modeString);
+      }
+    }
+
+
+    /*Method applyModeMenu
+     *Parameters: modeString(string) - name of mode associated with group Object.
+     *            modeGroup(group element) - group element to hold menu elements or null.
+     *Description: set the modeMenu to a group if there isn't one.
+     *Return: the current modeMenu for modeString.
+     */
+    applyModeMenu(modeString, modeGroup) {
+      //No menu added for this mode yet, add it.
+      if(!this.modeMenus.hasOwnProperty(modeString)) {
+        //No provided g element, make a new one.
+        if(!modeGroup) {
+          modeGroup = this.createAndSetElement("g", this.staticSVG, {id:`${modeString}Menu`});
+        }
+        this.modeMenus[modeString] = modeGroup;
+      }
+      return this.modeMenus[modeString];
+    }
+
 
     /*Method updateSVG
      *Parameters: null
@@ -160,6 +165,19 @@
         ${2 * this.yLength * Math.floor(this.transform._viewBox.y / (2 * this.yLength))})`);
     }
 
+
+    /*Method createAndSetTextElement
+     *Parameters: elementName(string), nameSpace(string), attributes(object)
+     *Description: use createAndSetElement then append a textNode.
+     *Return: newly created and appended element.
+     */
+    createAndSetTextElement(elementText, parentElement, attributes) {
+      let newTextElement = this.createAndSetElement("text", parentElement, attributes);
+      newTextElement.appendChild(document.createTextNode(elementText));
+      return newTextElement;
+    }
+
+
     /*Method createAndSetElement
      *Parameters: elementName(string), nameSpace(string), attributes(object)
      *Description: create Element then use setAttributesNS to ready.
@@ -171,6 +189,7 @@
       parentElement.appendChild(newElement);
       return newElement;
     }
+
 
     /*Method setAttributesNS
      *Parameters: element(svg object), nameSpace(string), attributes(object)
@@ -184,6 +203,20 @@
       }
     }
 
+
+    /*Method setStyle
+     *Parameters: element(svg object), styles(object)
+     *Description: take object of attributes and value and set in element
+     *Return: null
+     */
+    setStyle(element, styles) {
+      if(!styles) return null;
+      for(const [key, value] of Object.entries(styles)) {
+        element.style[key] = value;
+      }
+    }
+
+
     /*Method addEventListeners
      *Parameters: element, [{type: string, handler: function}, ...]
      *Description: take object of attributes and value and set in element
@@ -194,6 +227,7 @@
         element.addEventListener(listener.type, listener.handler);
       }
     }
+
 
     /*Method transformToSVGPoint
      *Parameters: svg(svg element), point(event with clientX, clientY or object with x, y)
@@ -210,7 +244,7 @@
         svg = svg.parentElement;
       }
       //will always be the static svg, pls note fails when svg has x, y attributes,
-      //also fails if there is a transform translate along the way.
+      //also fails if there is any transforms along the way.
       //This is only necessary in Firefox.
       let newPt = svgPt.matrixTransform(outerSVGs.pop().getScreenCTM().inverse());
       while(outerSVGs.length > 0) {
@@ -223,6 +257,7 @@
       return newPt;
     }
 
+
     /*Method nearestGridPoint
      *Parameters: SVG point(x, y)
      *Description: take svg point and convert to grid coordinates
@@ -232,6 +267,7 @@
       const y = Math.round(point.y / this.yLength);
       return {y: y, x: Math.round(point.x / this.xLength - y / 2)};
     }
+
 
     /*Method gridToSVGPoint
      *Parameters: grid point(x, y)
@@ -243,7 +279,56 @@
     }
   }
 
+  /*Class sVGViewBoxController
+   *Parameters: sVG(svg) - to control viewBox of
+   *Description: maintain viewBox for svg move and zoom.
+   */
+  class sVGViewBoxController {
+    constructor(sVG) {
+      this.sVG = sVG;
+      this.currentZoom = 0;
+      const width = +this.sVG.getAttribute("width");
+      const height = +this.sVG.getAttribute("height");
+      sVG.setAttributeNS(null, "viewBox", `0 0 ${width} ${height}`);
+      this.maxZoom = {width:width, height:height, hypotenuse:Math.hypot(width, height)};
+      this._viewBox = this.sVG.viewBox.baseVal;
+      this._moveDisplacement = {x:0, y:0};
+      this._zoomDisplacement = {x:0, y:0};
+    }
+
+    //convert to set move
+    moveBy(vector) {
+      this.move = {x:this._moveDisplacement.x - vector.x,
+        y:this._moveDisplacement.y - vector.y};
+    }
+
+    //store displacement, and update viewBox
+    set move(coordinates) {
+      this._moveDisplacement.x = coordinates.x;
+      this._moveDisplacement.y = coordinates.y;
+      this._viewBox.x = this._moveDisplacement.x + this._zoomDisplacement.x;
+      this._viewBox.y = this._moveDisplacement.y + this._zoomDisplacement.y;
+    }
+
+    //convert to set zoom
+    zoomBy(percent) {
+      this.zoom = this.currentZoom + percent;
+    }
+
+    //store zoom Displacement, and update viewBox.
+    set zoom(percent) {
+      this.currentZoom = percent;
+      this._zoomDisplacement.x = (1 - this.currentZoom) * this.maxZoom.width / 2;
+      this._zoomDisplacement.y = (1 - this.currentZoom) * this.maxZoom.height / 2;
+      this._viewBox.x = this._moveDisplacement.x + this._zoomDisplacement.x;
+      this._viewBox.y = this._moveDisplacement.y + this._zoomDisplacement.y;
+      this._viewBox.width = this.currentZoom * this.maxZoom.width;
+      this._viewBox.height = this.currentZoom * this.maxZoom.height;
+    }
+  }
+
   //Fill global or exports depending on import method
   exports.triangleGrid = triangleGrid;
+  exports.sVGViewBoxController = sVGViewBoxController;
   exports.__esModule = true;
 }));

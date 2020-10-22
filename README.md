@@ -22,17 +22,20 @@ If ya want to make your own modules, make them, send a module name, username/con
 ```js
 class moduleName {
   constructor(program) {
-    this.program = program;
     //"program" refers to the triGrid instance
     //Push to modes to add a new Mode, if there are any
-    program.modes.push("modeName");
+    program.addMode("modeName");
     //Add the group to toggle when mode changes, can be null
-    program.modeMenus["modeName"] = program.createAndSetElement(
-      "g", program.scaledSVG, {id: "modeNameMenu"}) || null;
+    program.applyModeMenu("modeName",
+      program.createAndSetElement("g", program.scaledSVG, {id: "modeNameMenu"})
+    );
+    /*OR*/
+    //Only one parameter and a group will be made for ya.
+    program.applyModeMenu("modeName");
     //Change or add necessary attributes to triGrid
     program.attributeName = attributeName;
   },
-  preparation() {
+  preparation(program) {
     //"program" refers to the triGrid instance.
   }
 };

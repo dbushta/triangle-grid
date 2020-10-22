@@ -20,11 +20,10 @@
    */
   class moduleAroundCenterZoom {
     constructor(program) {
-      this.program = program;
       //.05 to 1 maxZoom
-      program.modes.push("ZOOM");
-      program.modeMenus["ZOOM"] = program.createAndSetElement("g", program.staticSVG, {id: "zoomMenu"});
-      program.createAndSetElement("circle", program.modeMenus["ZOOM"],
+      program.addMode("ZOOM");
+      this.zoomMenu = program.applyModeMenu("ZOOM");
+      this.zoomCircle = program.createAndSetElement("circle", this.zoomMenu,
         {id: "zoomCircle", r: 1, cx: program.transform.maxZoom.width / 2,
         cy: program.transform.maxZoom.height / 2, style: "fill: none; stroke: red; stroke-width: 2"});
     }
@@ -36,7 +35,7 @@
 
       let zooming = false;
       let start = 0;
-      const zoomCircle = program.modeMenus["ZOOM"].getElementsByTagName("circle")[0];
+      const zoomCircle = this.zoomCircle;
 
       //Zoom in halfway, so user can zoom in or out at start.
       program.transform.zoom = 0.5;
@@ -97,11 +96,9 @@
    */
   class moduleTwoModesPoints {
     constructor(program) {
-      this.program = program;
       this.points = program.createAndSetElement("g", program.scaledSVG, {"class": "pointGroup"});
-      program.modes.push("ADD", "REMOVE");
-      program.modeMenus["ADD"] = null;
-      program.modeMenus["REMOVE"] = null;
+      program.addMode("ADD");
+      program.addMode("REMOVE");
     }
 
     preparation(program) {

@@ -20,34 +20,35 @@
    */
   class moduleMenu {
     constructor(program) {
-      this.program = program;
-      program.modes.push("MENU");
+      program.addMode("MENU");
       //Create an outside group, to separate the menuButton and Menu
       this.menuGroup = program.createAndSetElement("g", program.staticSVG, {id: "menuGroup"});
-      program.modeMenus["MENU"] = program.createAndSetElement("g", this.menuGroup, {id: "menuMenu"});
+      this.menuMenu = program.applyModeMenu("MENU",
+        program.createAndSetElement("g", this.menuGroup, {id: "menuMenu"}));
     }
 
     preparation(program) {
       //Retain this list to hide and show the menu
-      let menuBackground = program.createAndSetElement("rect", program.modeMenus["MENU"],
-        {class: "menuBackground", x: "25%", width: "50%", height: "100%", style: "fill: #ffffffa0"});
+      let menuBackground = program.createAndSetElement("rect", this.menuMenu,
+        {class: "menuBackground", x: "25%", width: "50%", height: "100%"});
+      menuBackground.style.fill = "#ffffffa0";
 
       //create svg to store all to be made mode buttons
-      let buttonGroup = program.createAndSetElement("g", program.modeMenus["MENU"],
+      let buttonGroup = program.createAndSetElement("g", this.menuMenu,
         {class: "menuButtons", transform: `translate(${program.transform.maxZoom.width * .25}, 0)`});
 
       //create open menu button
       const menuButton = program.createAndSetElement("g", this.menuGroup,
-        {class: "menuButton menuOption", "data-mode": "MENU", style: "display: none",
+        {class: "menuButton menuOption", "data-mode": "MENU",
         transform: `translate(${program.transform.maxZoom.width * .375},
         ${program.transform.maxZoom.height * .9})`});
+      menuButton.style.display = "none";
       let menuRect = program.createAndSetElement("rect", menuButton, {
-        class: "menuBackground", width: "25%", height: "10%", style: "fill: #ffffffa0"});
-      let menuText = program.createAndSetElement("text", menuButton,
+        class: "menuBackground", width: "25%", height: "10%"});
+      menuRect.style.fill = "#ffffffa0";
+      let menuText = program.createAndSetTextElement(program.currentMode, menuButton,
         {class: "menuButtonText", x: "12.5%", y: "5%"});
-      menuText.appendChild(document.createTextNode(program.currentMode));
-      menuText.style.dominantBaseline = "middle";
-      menuText.style.textAnchor = "middle";
+      program.setStyle(menuText, {dominantBaseline:"middle", textAnchor:"middle"});
 
       //Create each mode button in menu
       for(let i = 0, iLen = program.modes.length; i < iLen; ++i) {
@@ -59,12 +60,11 @@
           ${program.transform.maxZoom.width * .125},
           ${program.transform.maxZoom.height * (1 + i) * .15})`});
         let optionRect = program.createAndSetElement("rect", menuOption,
-          {class: "menuBackground", width: "25%", height: "10%", style: "fill: #ffffffa0"});
-        let optionText = program.createAndSetElement("text", menuOption,
+          {class: "menuBackground", width: "25%", height: "10%"});
+        optionRect.style.fill = "#ffffffa0";
+        let optionText = program.createAndSetTextElement(program.modes[i], menuOption,
           {class: "menuButtonText", x: "12.5%", y: "5%"});
-        optionText.appendChild(document.createTextNode(program.modes[i]));
-        optionText.style.dominantBaseline = "middle";
-        optionText.style.textAnchor = "middle";
+        program.setStyle(optionText, {dominantBaseline:"middle", textAnchor:"middle"});
       }
 
       //Hide all mode menus
@@ -148,9 +148,7 @@
    */
   class moduleMove {
     constructor(program) {
-      this.program = program;
-      program.modes.push("MOVE");
-      program.modeMenus["MOVE"] = null;
+      program.addMode("MOVE");
     }
 
     preparation(program) {
@@ -190,25 +188,19 @@
    */
   class moduleVerticalZoom {
     constructor(program) {
-      this.program = program;
-      program.modes.push("ZOOM");
-      program.modeMenus["ZOOM"] = program.createAndSetElement("g", program.staticSVG, {id: "zoomMenu"});
+      program.addMode("ZOOM");
+      this.zoomMenu = program.applyModeMenu("ZOOM", null);
 
-      program.createAndSetElement("rect", program.modeMenus["ZOOM"],
-        {x: "92.5%", y : "0", height: "100%", width: "5%", style: "fill: #ffffffa0;"});
-      this.slider = program.createAndSetElement("rect", program.modeMenus["ZOOM"],
-        {x: "92.5%", y : "47.5%", height: "10%", width: "5%",
-        style: "fill: #ffffffd0; stroke: grey;"});
-      let plus = program.createAndSetElement("text", program.modeMenus["ZOOM"],
-        {x: "95%", y: "5%", style: "font-size: 30;"});
-      plus.appendChild(document.createTextNode('+'));
-      plus.style.dominantBaseline = "middle";
-      plus.style.textAnchor = "middle";
-      let minus = program.createAndSetElement("text", program.modeMenus["ZOOM"],
-        {x: "95%", y: "95%", style: "font-size: 40;"});
-      minus.appendChild(document.createTextNode('-'));
-      minus.style.dominantBaseline = "middle";
-      minus.style.textAnchor = "middle";
+      this.sliderBar = program.createAndSetElement("rect", this.zoomMenu,
+        {x: "92.5%", y : "0", height: "100%", width: "5%"});
+      this.sliderBar.style.fill = "#ffffffa0";
+      this.slider = program.createAndSetElement("rect", this.zoomMenu,
+        {x: "92.5%", y : "47.5%", height: "10%", width: "5%"});
+      program.setStyle(this.slider, {fill:"#ffffffd0", stroke:"grey"});
+      let plus = program.createAndSetTextElement('+', this.zoomMenu, {x: "95%", y: "5%"});
+      program.setStyle(plus, {"font-size":20, dominantBaseline:"middle", textAnchor:"middle"});
+      let minus = program.createAndSetTextElement('-', this.zoomMenu, {x: "95%", y: "95%"});
+      program.setStyle(minus, {"font-size":30, dominantBaseline:"middle", textAnchor:"middle"});
     }
 
     preparation(program) {
@@ -253,7 +245,6 @@
       function gridZoomEnd(event) {
         if(program.currentMode != "ZOOM" || !zooming) return null;
         zooming = false;
-        program.modeMenus["ZOOM"]
       }
     }
   }
@@ -266,17 +257,13 @@
    */
   class moduleMousePoints {
     constructor(program) {
-      this.program = program;
       this.points = program.staticSVG.querySelector(".pointGroup");
       //Make sure there actually was a pointGroup.
       if(!program.staticSVG.querySelector(".pointGroup")) {
         this.points = program.createAndSetElement("g", program.scaledSVG, {class: "pointGroup"});
       }
       this.pointPositions = {};
-      //Try not to create doubles of the POINTS mode.
-      if(!program.modes.includes("POINTS")) program.modes.push("POINTS");
-      //Doesn't add anything to point menu, so doesn't need to check.
-      program.modeMenus["POINTS"] = program.staticSVG.querySelector(".pointsMenu");
+      program.addMode("POINTS");
     }
 
     preparation(program) {
@@ -296,9 +283,10 @@
         } else {
           //get actual svg coordinates and create circle at them.
           const roundedSVGPoint = program.gridToSVGPoint(gridPoint);
-          self.pointPositions[gridPointKey] = program.createAndSetElement("circle", self.points,
-            {r: '2', cx: roundedSVGPoint.x, cy: roundedSVGPoint.y, class: "point",
-            style: "fill: white; stroke: black; stroke-width: 1"});;
+          const newPoint = program.createAndSetElement("circle", self.points,
+            {r: '2', cx: roundedSVGPoint.x, cy: roundedSVGPoint.y, class: "point"});
+          self.pointPositions[gridPointKey] = newPoint;
+          program.setStyle(newPoint, {fill:"white", stroke:"black", strokewidth:1});
         }
       }
     }
@@ -312,7 +300,6 @@
    */
   class moduleTouchPoints {
     constructor(program) {
-      this.program = program;
       this.points = program.staticSVG.querySelector(".pointGroup");
       //Make sure there actually was a pointGroup
       if(!this.points) {
@@ -320,33 +307,29 @@
       }
       this.pointPositions = {};
       //Try not to create doubles of the POINTS mode
-      if(!program.modes.includes("POINTS")) program.modes.push("POINTS");
-      program.modeMenus["POINTS"] = program.staticSVG.querySelector(".pointsMenu");
-      //Make sure there actually was a pointsMenu
-      if(!program.modeMenus["POINTS"]) {
-        program.modeMenus["POINTS"] = program.createAndSetElement("g", program.staticSVG, {id: "pointsMenu"});
-      }
+      program.addMode("POINTS");
+      program.applyModeMenu("POINTS");
       this.targetLines = [];
       this.totalVisibleLines = 0;
       //Apparently there are ones that support up to 10 fingers now.
       this.maxFingers = 10;
       for(let i = 0; i < this.maxFingers; ++i) {
-        this.targetLines.push(program.createAndSetElement("line", program.modeMenus["POINTS"],
-          {style: "stroke: red; stroke-width: 1;"}));
+        this.targetLines.push(program.createAndSetElement("line", program.modeMenus["POINTS"]));
+        program.setStyle(this.targetLines[i], {stroke:"red", strokewidth:1});
       }
-      this.targetCircle = this.program.createAndSetElement("circle", program.modeMenus["POINTS"],
-        {r: 1.5, style: "fill: red; stroke: darkred; stroke-width: .5; display: none;"});
-      this.targetPosition = {x: 0, y: 0};
+      this.targetCircle = program.createAndSetElement("circle", program.modeMenus["POINTS"], {r:1.5});
+      program.setStyle(this.targetCircle, {fill:"red", stroke:"darkred", strokewidth:0.5, display:"none"});
+      this.targetPosition = {x:0, y:0};
     }
 
     preparation(program) {
       const self = this;
-      program.staticSVG.addEventListener("touchstart", touchStart);
-      program.staticSVG.addEventListener("touchmove", touchMid);
-      program.staticSVG.addEventListener("touchend", touchEnd);
-      program.staticSVG.addEventListener("touchcancel", touchEnd);
+      program.addEventListeners(program.staticSVG, [
+        {type:"touchstart", handler:touchStart}, {type:"touchmove", handler:touchMid},
+        {type:"touchend", handler:touchEnd}, {type:"touchcencel", handler:touchEnd}]);
       let touchActive = false;
-      //if total > 5 only 5 will be visible, if total = 0 none will be visible.
+      //if total > maxFingers only maxFingers will be visible, if total = 0 none will be visible.
+      //Note this is dependent on touch screen capabilities.
       function setLineVisibility(total) {
         self.targetCircle.style.display = total ? "block" : "none";
         self.totalVisibleLines = 0;
@@ -407,9 +390,10 @@
         } else {
           //get actual svg coordinates and create circle at them.
           const roundedSVGPoint = program.gridToSVGPoint(self.targetPosition);
-          self.pointPositions[gridPointKey] = program.createAndSetElement("circle", self.points,
-            {r: '2', cx: roundedSVGPoint.x, cy: roundedSVGPoint.y, class: "point",
-            style: "fill: white; stroke: black; stroke-width: 1"});;
+          const newPoint = program.createAndSetElement("circle", self.points,
+            {r: '2', cx: roundedSVGPoint.x, cy: roundedSVGPoint.y, class: "point"});
+          self.pointPositions[gridPointKey] = newPoint;
+          program.setStyle(newPoint, {fill:"white", stroke:"black", strokewidth:1});
         }
         //Hide all the lines, to let user know to restart.
         setLineVisibility(0);
@@ -421,17 +405,14 @@
   /*object moduleCenterMarker
    *Parameters: null
    *Description: Add a circle to 0, 0 on the grid
-   *  in preparation so it renders above other elements.
-   *return null
+   *  in preparation so it renders above other elements made in constructor.
    */
   class moduleCenterMarker {
-    constructor(program) {
-      this.program = program;
-    }
+    constructor(program) {}
 
-    preparation() {
-      let center = this.program.createAndSetElement("circle", this.program.scaledSVG,
-        {class: "centerCircle", r: 1, style: "fill: red; stroke: black; stroke-width: 1;"});
+    preparation(program) {
+      let center = program.createAndSetElement("circle", program.scaledSVG, {class: "centerCircle", r: 1.5});
+      program.setStyle(center, {fill:"red"})
     }
   }
 
