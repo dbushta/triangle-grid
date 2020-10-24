@@ -10,8 +10,6 @@
         touch-action: none;
       }
       .backgroundSVG {
-        height: 100%;
-        width: 100%;
         position: fixed;
         top: 0;
         bottom: 0;
@@ -52,7 +50,7 @@
   </head>
   <body>
     <!--Background should have preserveAspectRatio-->
-    <svg class="backgroundSVG" height="100%" width="100%" preserveAspectRatio="xMinYMin slice"></svg>
+    <svg class="backgroundSVG" preserveAspectRatio="xMinYMin slice"></svg>
     <!--Apply this div's classes to everything inside it-->
     <div class="showCaseSVGs center noHighlight">
       <header class="outLineBlock blueBackground">
@@ -136,6 +134,11 @@
     <script>
       //Hide anonymous function and variables from global space
       (() => {//Comment this line and the next to unhide
+        //set to height and width, bc menus on phone(bottom) and desktop(inspector) alter innerHeight,
+        //so when menus close the viewBox of background svg won't update, causing blank areas at bottom.
+        const backgroundSVG = document.querySelector(".backgroundSVG");
+        backgroundSVG.setAttributeNS(null, "height", window.screen.height);
+        backgroundSVG.setAttributeNS(null, "width", window.screen.width);
         //Make a static node list, bc triangle Grid makes additional SVGs.
         const allSVGs = document.querySelectorAll(".showCaseSVG");
         const options = [modules.moduleCenterMarker, modules.moduleMove, modules.moduleVerticalZoom,
@@ -144,7 +147,7 @@
         const menuModes = ["MOVE", "ZOOM", "POINTS", "POINTS", "MENU"];
 
         //create a grid class for every svg.
-        let allGrids = [new triGrid.triangleGrid(document.querySelector(".backgroundSVG"), 25, null)];
+        let allGrids = [new triGrid.triangleGrid(backgroundSVG, 25, null)];
         for(let i = 0; i < allSVGs.length; i++) {
           allGrids.push(new triGrid.triangleGrid(allSVGs[i], 5, menuOptions[i], menuModes[i]));
         }

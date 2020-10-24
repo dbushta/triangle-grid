@@ -6,8 +6,6 @@
     <title>Triangle Grid Home</title>
     <style>
       .backgroundSVG {
-        height: 100%;
-        width: 100%;
         position: fixed;
         top: 0;
         bottom: 0;
@@ -68,7 +66,11 @@
     <script>
       //Hide anonymous function and variables from global space
       (() => {//Comment this line and the next to unhide
-        new triGrid.triangleGrid(document.querySelector(".backgroundSVG"), 25, null);
+        //set to height and width, bc menus on phone(bottom) and desktop(inspector) alter innerHeight
+        const backgroundSVG = document.querySelector(".backgroundSVG");
+        backgroundSVG.setAttributeNS(null, "height", window.screen.height);
+        backgroundSVG.setAttributeNS(null, "width", window.screen.width);
+        new triGrid.triangleGrid(backgroundSVG, 25, null);
       })();//Comment this line and previous to unhide
 
     </script>

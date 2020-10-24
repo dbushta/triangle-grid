@@ -10,8 +10,6 @@
         touch-action: none;
       }
       .backgroundSVG {
-        height: 100%;
-        width: 100%;
         position: fixed;
         top: 0;
         bottom: 0;
@@ -96,7 +94,11 @@
         const menuModes = ["ZOOM"];
 
         //Background svg
-        new triGrid.triangleGrid(document.querySelector(".backgroundSVG"), 25, null)
+        //set to height and width, bc menus on phone(bottom) and desktop(inspector) alter innerHeight
+        const backgroundSVG = document.querySelector(".backgroundSVG");
+        backgroundSVG.setAttributeNS(null, "height", window.screen.height);
+        backgroundSVG.setAttributeNS(null, "width", window.screen.width);
+        new triGrid.triangleGrid(backgroundSVG, 25, null)
 
         //create a grid class for every svg.
         let allGrids = [];

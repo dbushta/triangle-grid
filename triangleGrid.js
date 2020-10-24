@@ -93,7 +93,6 @@
         (this.transform.maxZoom.height > this.transform.maxZoom.width ?
         this.transform.maxZoom.height : this.transform.maxZoom.width) /
         (2 * this.yLength)) * 2 * this.xLength;
-        console.log(this.transform.maxZoom.height, this.transform.maxZoom.width, length);
       var pointPairs = [];
       /*Create diagonal point pairs starting at half a length(which is even) to the left.
         Length is the height of a right triangle, which is sqrt(3) times the base.
