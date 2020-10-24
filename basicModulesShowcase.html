@@ -117,10 +117,14 @@
       <div id="sVG6">
         <section class="outLineBlock blueBackground">
           <h2>Grid controlled external to svg by radio buttons</h2>
+          <!--Technically calls the listener twice if label is pressed, but no better ideas.-->
           <div id="radioManager">
-            <input type="radio" name="externalControl" value="MOVE">MOVE</input>
-            <input type="radio" name="externalControl" value="ZOOM">ZOOM</input>
-            <input type="radio" name="externalControl" value="POINTS">POINTS</input>
+            <input type="radio" name="externalControl" id="MOVE"></input>
+            <label for="MOVE">MOVE</label>
+            <input type="radio" name="externalControl" id="ZOOM"></input>
+            <label for="ZOOM">ZOOM</label>
+            <input type="radio" name="externalControl" id="POINTS"></input>
+            <label for="POINTS">POINTS</label>
           </div>
         </section>
         </br>
@@ -157,7 +161,7 @@
           if(outsideButtonSVG.modeMenus[outsideButtonSVG.currentMode]) {
             outsideButtonSVG.modeMenus[outsideButtonSVG.currentMode].style.display = "none";
           }
-          outsideButtonSVG.currentMode = event.target.value;
+          outsideButtonSVG.currentMode = event.target.id;
 
           if(outsideButtonSVG.modeMenus[outsideButtonSVG.currentMode]) {
             outsideButtonSVG.modeMenus[outsideButtonSVG.currentMode].style.display = "block";
