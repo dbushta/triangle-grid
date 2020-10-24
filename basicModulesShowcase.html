@@ -137,8 +137,9 @@
         //set to height and width, bc menus on phone(bottom) and desktop(inspector) alter innerHeight,
         //so when menus close the viewBox of background svg won't update, causing blank areas at bottom.
         const backgroundSVG = document.querySelector(".backgroundSVG");
-        backgroundSVG.setAttributeNS(null, "height", window.screen.height);
-        backgroundSVG.setAttributeNS(null, "width", window.screen.width);
+        const deviceRatio = window.devicePixelRatio || 1;
+        backgroundSVG.setAttributeNS(null, "height", window.screen.height * deviceRatio);
+        backgroundSVG.setAttributeNS(null, "width", window.screen.width * deviceRatio);
         //Make a static node list, bc triangle Grid makes additional SVGs.
         const allSVGs = document.querySelectorAll(".showCaseSVG");
         const options = [modules.moduleCenterMarker, modules.moduleMove, modules.moduleVerticalZoom,

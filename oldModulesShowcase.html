@@ -96,8 +96,9 @@
         //Background svg
         //set to height and width, bc menus on phone(bottom) and desktop(inspector) alter innerHeight
         const backgroundSVG = document.querySelector(".backgroundSVG");
-        backgroundSVG.setAttributeNS(null, "height", window.screen.height);
-        backgroundSVG.setAttributeNS(null, "width", window.screen.width);
+        const deviceRatio = window.devicePixelRatio || 1;
+        backgroundSVG.setAttributeNS(null, "height", window.screen.height * deviceRatio);
+        backgroundSVG.setAttributeNS(null, "width", window.screen.width * deviceRatio);
         new triGrid.triangleGrid(backgroundSVG, 25, null)
 
         //create a grid class for every svg.
