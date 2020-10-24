@@ -4,49 +4,7 @@
   <head xmlns="http://www.w3.org/1999/xhtml">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Triangle Grid Old Modules Showcase</title>
-    <style>
-      /*Prevent the mobile device from scrolling while on svg*/
-      .sVG {
-        touch-action: none;
-      }
-      .backgroundSVG {
-        position: fixed;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-      }
-
-      .center {
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        text-align: center;
-      }
-
-      .noHighlight {
-        -moz-user-select: none;
-        -ms-user-select: none;
-        -khtml-user-select: none;
-        -webkit-user-select: none;
-        -webkit-touch-callout: none;
-      }
-
-      .outLineBlock {
-        outline: 1px solid black;
-        position: relative;
-      }
-
-      .blueBackground {
-        background-color: powderblue;
-      }
-
-      .whiteBackground {
-        background-color: white;
-      }
-    </style>
-    <script src="triangleGrid.js"></script>
-    <script src="triangleGridOldModules.js"></script>
+    <link rel="stylesheet" href="showCaseStyle.css"></link>
   </head>
   <body>
     <!--Background should have preserveAspectRatio-->
@@ -84,6 +42,8 @@
       </div>
     </div>
 
+    <script src="triangleGrid.js"></script>
+    <script src="triangleGridOldModules.js"></script>
     <script>
       //Hide anonymous function and variables from global space
       (() => {//Comment this line and the next to unhide

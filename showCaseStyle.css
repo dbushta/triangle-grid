@@ -1,0 +1,43 @@
+/*Background may be useful, everything else probably unnecessary for code user,
+ *just here to make the showcase html look nice
+ *prevent the mobile device from scrolling while on svg
+ */
+.sVG {
+  touch-action: none;
+}
+
+.backgroundSVG {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.noHighlight {
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.outLineBlock {
+  outline: 1px solid black;
+  position: relative;
+}
+
+.blueBackground {
+  background-color: powderblue;
+}
+
+.whiteBackground {
+  background-color: white;
+}
