@@ -106,8 +106,8 @@
         console.log(document.documentElement.getBoundingClientRect().height);
         console.log(document.documentElement.scrollHeight);
         console.log("end");
-        //backgroundSVG.setAttributeNS(null, "height", window.screen.height * deviceRatio);
-        //backgroundSVG.setAttributeNS(null, "width", window.screen.width * deviceRatio);
+        //backgroundSVG.setAttributeNS(null, "height", window.innerHeight);// * deviceRatio);
+        //backgroundSVG.setAttributeNS(null, "width", window.innerWidth);// * deviceRatio);
         //Make a static node list, bc triangle Grid makes additional SVGs.
         const allSVGs = document.querySelectorAll(".showCaseSVG");
         const options = [modules.moduleCenterMarker, modules.moduleMove, modules.moduleVerticalZoom,

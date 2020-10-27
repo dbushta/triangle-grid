@@ -363,15 +363,15 @@
           mean.y += event.touches[i].clientY;
           //Set coordinates for the line ends at touches on static svg.
           let staticSVGPoint = program.transformToSVGPoint(program.staticSVG, event.touches[i]);
-          program.setAttributesNS(self.targetLines[i], {x1: staticSVGPoint.x, y1: staticSVGPoint.y});
+          program.setAttributes(self.targetLines[i], {x1: staticSVGPoint.x, y1: staticSVGPoint.y});
         }
         mean.x /= totalTouches;
         mean.y /= totalTouches;
         //set coordinates for the other line ends at mean touch
         const staticSVGPoint = program.transformToSVGPoint(program.staticSVG, mean);
-        program.setAttributesNS(self.targetCircle, {cx: staticSVGPoint.x, cy: staticSVGPoint.y});
+        program.setAttributes(self.targetCircle, {cx: staticSVGPoint.x, cy: staticSVGPoint.y});
         for(let i = 0; i < totalTouches && i < self.maxFingers; ++i) {
-          program.setAttributesNS(self.targetLines[i], {x2: staticSVGPoint.x, y2: staticSVGPoint.y});
+          program.setAttributes(self.targetLines[i], {x2: staticSVGPoint.x, y2: staticSVGPoint.y});
         }
         //use the mean like a single touch event.
         const scaledSVGPoint = program.transformToSVGPoint(program.scaledSVG, mean);

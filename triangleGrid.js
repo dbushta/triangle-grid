@@ -28,9 +28,10 @@
       this.nameSpace = "http://www.w3.org/2000/svg";
       this.staticSVG = svg;
       const sVGDimensions = this.staticSVG.getBoundingClientRect();
-      this.scaledSVG = this.createAndSetElement("svg", svg,
-        {id:"scaledSVG", width:sVGDimensions.width, height:sVGDimensions.height});
-      this.transform = new sVGViewBoxController(this.scaledSVG);
+      //Necessary to make svg scaleable.
+      svg.setAttributeNS(null, "viewBox", `0 0 ${sVGDimensions.width} ${sVGDimensions.height}`);
+      this.scaledSVG = this.createAndSetElement("svg", svg, {id:"scaledSVG"});
+      this.transform = new sVGViewBoxController(this.scaledSVG, sVGDimensions.width, sVGDimensions.height);
       this.grid = this.createAndSetElement("g", this.scaledSVG, {class:"gridGroup"});
       /*Length of one triangle of the grid*/
       this.xLength = triangleSideLength;
@@ -43,40 +44,16 @@
       this.modeMenus = {};
       this.currentMode = mode;
       this.modules = modules;
-      this.initialize();
-      this.updateSVG();
-    }
-
-
-    /*Function initialize
-     *Parameters: null
-     *Description: use/create a viewbox for svg, and prepare the svg.
-     *Return: null
-     */
-    initialize() {
-      /*Set viewBox to svg boundingClientRect so dimensions match,
-        and preserveAspectRatio doesn't cause as many problems.
-       */
-      /*const dimensions = this.staticSVG.getBoundingClientRect();
-      //Remember max size before infinite grid illusion is broken
-      this.transform.maxZoom = {
-        width: dimensions.width,
-        height: dimensions.height,
-        hypotenuse: Math.hypot(dimensions.height, dimensions.width)};
-      //Center the grid
-      const viewBoxString = `0 0 ${dimensions.width} ${dimensions.height}`;
-      this.staticSVG.setAttributeNS(null, "viewBox", viewBoxString);
-      this.scaledSVG.setAttributeNS(null, "viewBox", viewBoxString);
-      this.transform._viewBox = this.scaledSVG.viewBox.baseVal;*/
       this.transform.moveBy({x: this.transform.maxZoom.width / 2, y: this.transform.maxZoom.height / 2});
 
       this.drawLines();
-      if(!this.modules) return null;
-      //Create and call preparation functions
-      for(let i = 0; i < this.modules.length; i++) this.modules[i] = new this.modules[i](this);
-      for(const module of this.modules) module.preparation(this);
+      if(this.modules) {
+        //Create and call preparation functions
+        for(let i = 0; i < this.modules.length; i++) this.modules[i] = new this.modules[i](this);
+        for(const module of this.modules) module.preparation(this);
+      }
+      this.updateSVG();
     }
-
 
     /*Method drawLines
      *Parameters: null
@@ -179,23 +156,23 @@
 
     /*Method createAndSetElement
      *Parameters: elementName(string), nameSpace(string), attributes(object)
-     *Description: create Element then use setAttributesNS to ready.
+     *Description: create Element then use setAttributes to ready.
      *Return: newly created and appended element.
      */
     createAndSetElement(elementName, parentElement, attributes) {
       let newElement = document.createElementNS(this.nameSpace, elementName);
-      this.setAttributesNS(newElement, attributes);
+      this.setAttributes(newElement, attributes);
       parentElement.appendChild(newElement);
       return newElement;
     }
 
 
-    /*Method setAttributesNS
+    /*Method setAttributes
      *Parameters: element(svg object), nameSpace(string), attributes(object)
      *Description: take object of attributes and value and set in element
      *Return: null
      */
-    setAttributesNS(element, attributes) {
+    setAttributes(element, attributes) {
       if(!attributes) return null;
       for(const [key, value] of Object.entries(attributes)) {
         element.setAttributeNS(null, key, value);
@@ -281,13 +258,13 @@
   /*Class sVGViewBoxController
    *Parameters: sVG(svg) - to control viewBox of
    *Description: maintain viewBox for svg move and zoom.
+   *  Bounding box has trouble with inner svgs without set dimensions.
+   *  Setting static numbers will prevent scaling with window.
    */
   class sVGViewBoxController {
-    constructor(sVG) {
+    constructor(sVG, width, height) {
       this.sVG = sVG;
       this.currentZoom = 0;
-      const width = +this.sVG.getAttribute("width");
-      const height = +this.sVG.getAttribute("height");
       sVG.setAttributeNS(null, "viewBox", `0 0 ${width} ${height}`);
       this.maxZoom = {width:width, height:height, hypotenuse:Math.hypot(width, height)};
       this._viewBox = this.sVG.viewBox.baseVal;
